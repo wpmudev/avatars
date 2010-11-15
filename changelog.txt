@@ -1,9 +1,16 @@
 Plugin Name: Avatars
-Author: Andrew Billits
+Author: Andrew Billits, Ulrich Sossou
 
 Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
+
+3.5.0 - 11/15/2010
+----------------------------------------------------------------------
+- Easier installation procedure
+- Localization
+- Display admin notice when BuddyPress is installed
+- Bug fixes: php errors
 
 3.4.1 - 06/01/2010
 ----------------------------------------------------------------------

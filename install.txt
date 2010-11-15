@@ -1,27 +1,14 @@
 Plugin Name: Avatars
-Author: Andrew Billits
+Author: Andrew Billits, Ulrich Sossou
 
 Files:
 ----------------------------------------------------------------------
 avatars.php - goes in /wp-content/mu-plugins
-widget-avatar.php - goes in /wp-content/mu-plugins
-avatar-comments.php - goes in /wp-content/mu-plugins
-avatar-posts.php - goes in /wp-content/mu-plugins
-avatar.php - goes in /wp-content
-default-avatar-128.png - goes in /wp-content
-default-avatar-96.png - goes in /wp-content
-default-avatar-48.png - goes in /wp-content
-default-avatar-32.png - goes in /wp-content
-default-avatar-16.png - goes in /wp-content
+avatars-files/ - goes in /wp-content/mu-plugins
 
 Instructions:
 ----------------------------------------------------------------------
-1) Place the files in the specified directories
-2) Add the following to your .htaccess under the line that handles uploaded files:
-RewriteRule ^(.*/)?avatar/(.*) wp-content/avatar.php?file=$2 [L]
-3) Create the following directories and chmod them to 777:
-/wp-content/avatars/user
-/wp-content/avatars/blog
+2) Place the files in the specified directories
 
 Avatars Functions:
 ----------------------------------------------------------------------
@@ -53,10 +40,4 @@ avatar-bbpress.php - add avatars to your bbpress template. BBPress must be using
 Troubleshooting:
 ----------------------------------------------------------------------
 1) Have you checked that all the .php files have been uploaded to the correct directories
-2) Have you checked that you wrote
-
-	RewriteRule ^(.*/)?avatar/(.*) wp-content/avatar.php?file=$2 [L]
-	
-to the .htaccess file properly?
-3) Have you checked that you've overwritten the .htaccess file
-4) Have you checked you have created the user and blog directory properly and they are inside the avatars directory inside wp-content; plus their file permission has been set to 777
+2) Check if the upload directory 'wp-content/uploads' is writable
