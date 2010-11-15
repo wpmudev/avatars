@@ -4,8 +4,9 @@ Plugin Name: Avatars
 Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 3.5.0
 Author URI: http://incsub.com
+Version: 3.5.0
+Text Domain: avatars
 WDP ID: 10
 */
 
@@ -65,14 +66,12 @@ function avatar_flush_rules() {
 		$wp_rewrite->flush_rules();
 	}
 }
-add_action( 'init', 'avatar_flush_rules' );
 
 // add avatar query var
 function avatars_query_var( $vars ) {
     $vars[] = 'avatar';
     return $vars;
 }
-add_filter('query_vars','avatars_query_var');
 
 function avatar_redirect() {
 	if( $file = get_query_var('avatar') ) {
@@ -81,7 +80,6 @@ function avatar_redirect() {
 		exit;
 	}
 }
-add_action( 'template_redirect', 'avatar_redirect', -1 );
 
 add_action('admin_notices', 'avatars_admin_errors');
 add_action('plugins_loaded', 'avatars_plugins_loaded');
@@ -91,15 +89,15 @@ function avatars_admin_errors() {
 	// check if BuddyPress is installed
 	if( defined( 'BP_VERSION' ) ) {
 
-		$message = sprintf( __( 'BuddyPress has it\'s own avatar system. The Avatars plugin functions have been deactivated.', 'avatar' ), ABSPATH . $avatars_path );
+		$message = sprintf( __( 'BuddyPress has it\'s own avatar system. The Avatars plugin functions have been deactivated. Please remove the files.', 'avatar' ), ABSPATH . $avatars_path );
 		echo "<div class='error'><p>$message</p></div>";
 
 	} else {
 
 		global $avatars_path;
 
-		// check if plugin directory exists
-		if ( is_dir( ABSPATH . 'wp-content/avatars/' ) ) {
+		// check if old directory exists
+		if ( is_dir( ABSPATH . 'wp-content/avatars/' ) && !is_dir( ABSPATH . $avatars_path ) ) {
 			if( rename( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) {
 				$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatar' ), ABSPATH . $avatars_path );
 			} else {
@@ -123,6 +121,12 @@ function avatars_plugins_loaded() {
 	if( !defined( 'BP_VERSION' ) ) {
 		global $current_site, $current_blog;
 
+		// url rewriting
+		add_action( 'init', 'avatar_flush_rules' );
+		add_filter( 'query_vars','avatars_query_var');
+		add_action( 'template_redirect', 'avatar_redirect', -1 );
+
+		// settings pages
 		add_action('admin_menu', 'avatars_plug_pages');
 		add_filter('whitelist_options', 'avatars_whitelist');
 
@@ -139,6 +143,7 @@ function avatars_plugins_loaded() {
 		add_filter('wpmu_users_columns', 'avatars_site_admin_column_header');
 		add_action('manage_users_custom_column','avatars_site_admin_column_content', 1, 2);
 
+		// widget
 		add_action('widgets_init', 'widget_avatars_init');
 	}
 }
@@ -723,7 +728,7 @@ function avatars_page_edit_user_avatar() {
         <div style="background-color: rgb(255, 251, 204);" id="message" class="updated fade">
             <p>
                 <strong>
-                <?php _e('' . urldecode($_GET['updatedmsg']) . '') ?>
+                <?php echo isset( $_GET['updatedmsg'] ) ? $_GET['updatedmsg'] : ''; ?>
                 </strong>
             </p>
         </div>
@@ -1039,7 +1044,7 @@ function avatars_page_site_admin_edit_user_avatar() {
         <div style="background-color: rgb(255, 251, 204);" id="message" class="updated fade">
             <p>
                 <strong>
-                <?php _e('' . urldecode($_GET['updatedmsg']) . '') ?>
+                <?php echo isset( $_GET['updatedmsg'] ) ? $_GET['updatedmsg'] : ''; ?>
                 </strong>
             </p>
         </div>
