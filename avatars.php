@@ -207,15 +207,69 @@ function avatars_plug_pages() {
 	} else {
 		add_submenu_page('options-general.php', __( 'Blog Avatar', 'avatars' ), __( 'Blog Avatar', 'avatars' ), 'manage_options', 'blog-avatar', 'avatars_page_edit_blog_avatar' );
 	}
-	if ( current_user_can('manage_options') ) {
-		add_submenu_page('users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', 'avatars_page_edit_user_avatar' );
+	if ( current_user_can('edit_users') ) {
+		add_submenu_page('users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'manage_options', 'user-avatar', 'avatars_page_edit_user_avatar' );
 	} else {
 		add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', 'avatars_page_edit_user_avatar' );
 	}
-	if ( is_super_admin() && isset($_GET['page']) && $_GET['page'] == 'edit-user-avatar' ) {
-		add_submenu_page('ms-admin.php', __( 'Edit User Avatar', 'avatars' ), __( 'Edit User Avatar', 'avatars' ), 'read', 'edit-user-avatar', 'avatars_page_site_admin_edit_user_avatar' );
+	if ( is_super_admin() && isset( $_GET['page'] ) && $_GET['page'] == 'edit-user-avatar' ) {
+		add_action( 'admin_page_edit', 'avatars_page_site_admin_edit_user_avatar' );
+		add_submenu_page('ms-admin.php', __( 'Edit User Avatar', 'avatars' ), __( 'Edit User Avatar', 'avatars' ), 'manage_network_options', 'edit-user-avatar', 'avatars_page_site_admin_edit_user_avatar' );
 	}
 }
+
+// find an admin menu item by its page slug
+function array_find_r( $needle, $haystack ) {
+	if( !is_array( $haystack ) )
+		return false;
+	foreach( $haystack as $key => $value ) {
+		if( isset( $value[2] ) && $value[2] == $needle ) {
+			return $key;
+		} elseif( is_array( $value ) ) {
+			$result = array_find_r( $needle, $value );
+			if( is_numeric( $result ) )
+				return $result;
+		}
+	}
+	return false;
+}
+
+// unset admin menus
+function avatars_admin_menu() {
+	global $submenu;
+
+	$key = array_find_r( 'edit-user-avatar', $submenu );
+	unset( $submenu['ms-admin.php'][$key] );
+
+	$key = array_find_r( 'user-avatar', $submenu );
+	unset( $submenu['users.php'][$key] );
+	unset( $submenu['profile.php'][$key] );
+}
+add_action( 'custom_menu_order', 'avatars_admin_menu' );
+
+// add avatar to profile page
+function avatar_to_profile( $profileuser ) {
+	global $submenu_file;
+?>
+	<table class="form-table">
+		<tbody>
+			<tr>
+				<th><label for="avatar">Avatar</label></th>
+				<td><span class="description"><?php _e( 'This is your "user" avatar. It will appear whenever you leave comments, post in the forums and when your popular posts are displayed around the site.', 'avatars' ); ?><br>
+				<?php echo get_avatar( $profileuser->ID ); ?><br>
+				<?php
+				if( IS_PROFILE_PAGE )
+					echo '<a href="' . admin_url( "$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar' ) . '</a></td>';
+				else
+					echo '<a href="' . admin_url( "ms-admin.php?page=edit-user-avatar&uid=$profileuser->ID" ) . '">' . __( 'Change Avatar' ) . '</a></td>';
+				?>
+			</tr>
+		</tbody>
+	</table>
+<?php
+}
+add_action( 'show_user_profile', 'avatar_to_profile' );
+add_action( 'edit_user_profile', 'avatar_to_profile' );
 
 // admin javascript
 function avatars_plug_scripts() {
@@ -350,7 +404,8 @@ function get_avatar( $id_or_email, $size = '96', $default = '' ) {
 		//user exists locally - check if avatar exists
 		$file = ABSPATH . $user_avatars_path . substr(md5($id), 0, 3) . '/user-' . $id . '-' . $size . '.png';
 		if ( is_file( $file ) ) {
-			if ( $_GET['page'] == 'user-avatar' || $_GET['page'] == 'blog-avatar' || $_GET['page'] == 'edit-user-avatar' || $_GET['page'] == 'edit-blog-avatar') {
+			$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
+			if ( $page == 'user-avatar' || $page == 'blog-avatar' || $page == 'edit-user-avatar' || $page == 'edit-blog-avatar') {
 				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $id . '-' . $size . '.png?rand=' . md5(time());
 			} else {
 				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $id . '-' . $size . '.png';
@@ -365,7 +420,7 @@ function get_avatar( $id_or_email, $size = '96', $default = '' ) {
 		 	$avatar_user_id = $wpdb->get_var("SELECT ID FROM $wpdb->users WHERE user_email = '" . $email . "'" );
 			$file = ABSPATH . $user_avatars_path . substr(md5($avatar_user_id), 0, 3) . '/user-' . $avatar_user_id . '-' . $size . '.png';
 			if ( is_file( $file ) ) {
-			if ( $_GET['page'] == 'user-avatar' ) {
+			if ( isset( $_GET['page'] ) && $_GET['page'] == 'user-avatar' ) {
 				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png?rand=' . md5(time());
 			} else {
 				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
@@ -752,7 +807,6 @@ function avatars_page_edit_user_avatar() {
 				<?php
             }
 			?>
-			<p><?php _e( 'This is your "user" avatar. It will appear whenever you leave comments, post in the forums and when your popular posts are displayed around the site.', 'avatars' ); ?></p>
 			<p>
             <?php
 			echo get_avatar($user_ID,'96',get_option('avatar_default'));
