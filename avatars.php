@@ -96,9 +96,11 @@ function avatars_admin_errors() {
 
 		global $avatars_path;
 
+		$filesystem = new WP_Filesystem_Direct();
+
 		// check if old directory exists
 		if ( is_dir( ABSPATH . 'wp-content/avatars/' ) && !is_dir( ABSPATH . $avatars_path ) ) {
-			if( rename( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) {
+			if( $filesystem->move( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) {
 				$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatar' ), ABSPATH . $avatars_path );
 			} else {
 				$message = sprintf( __( 'The Avatars plugin now store files in %s. Please move your old folder.', 'avatar' ), ABSPATH . $avatars_path );
@@ -137,9 +139,7 @@ function avatars_plugins_loaded() {
 				add_action('init','avatars_enqueue_scripts');
 			}
 		}
-		if ($page == 'edit_blog_avatar' || $page == 'edit_user_avatar') {
-			add_action('init', 'avatars_legacy_redirect');
-		}
+
 		add_filter('wpmu_users_columns', 'avatars_site_admin_column_header');
 		add_action('manage_users_custom_column','avatars_site_admin_column_content', 1, 2);
 
@@ -168,33 +168,6 @@ function avatars_site_admin_column_header($posts_columns) {
 	$new_column = array( 'avatar' => __( 'Avatar', 'avatars' ) );
 	$posts_columns = array_merge($posts_columns, $new_column);
 	return $posts_columns;
-}
-
-// redirect legacy urls
-function avatars_legacy_redirect() {
-	$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
-	if( $page == 'edit_blog_avatar' ) {
-		echo "
-		<script language='javascript'>
-		window.location='profile.php?page=blog-avatar';
-		</script>
-		";
-	}
-	if( $page == 'edit_user_avatar' ) {
-		if ( current_user_can('manage_options') ) {
-			echo "
-			<script language='javascript'>
-			window.location='users.php?page=user-avatar';
-			</script>
-			";
-		} else {
-			echo "
-			<script language='javascript'>
-			window.location='profile.php?page=user-avatar';
-			</script>
-			";
-		}
-	}
 }
 
 // add admin pages
@@ -852,16 +825,16 @@ function avatars_page_edit_user_avatar() {
 			} else {
 				$avatar_path = ABSPATH . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/';
 
-				if (is_dir($avatar_path)) {
+				if ( is_dir( $avatar_path ) ) {
 				} else {
 					wp_mkdir_p( $avatar_path );
 				}
 
 				$image_path = $avatar_path . basename($_FILES['avatar_file']['name']);
 
-				if(move_uploaded_file($_FILES['avatar_file']['tmp_name'], $image_path)) {
+				if( move_uploaded_file( $_FILES['avatar_file']['tmp_name'], $image_path ) ) {
 					//file uploaded...
-					chmod($image_path, 0777);
+					chmod( $image_path, 0777 );
 				} else{
 					echo __( "There was an error uploading the file, please try again.", 'avatars' );
 				}
