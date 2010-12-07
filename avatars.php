@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://incsub.com
-Version: 3.5.0
+Version: 3.5.1
 Text Domain: avatars
 WDP ID: 10
 */
@@ -41,7 +41,7 @@ $default_blog_avatar = 'identicon'; //'local_default', 'gravatar_default', 'iden
 $local_default_avatar_url = WPMU_PLUGIN_URL . '/avatars-files/images/default-avatar-';
 $local_default_avatar_path = WPMU_PLUGIN_DIR . '/avatars-files/images/default-avatar-';
 
-define( 'AVATAR_VERSION', '3.5.0' );
+define( 'AVATAR_VERSION', '3.5.1' );
 
 load_muplugin_textdomain( 'avatars', 'avatars-files/languages' );
 
@@ -96,10 +96,13 @@ function avatars_admin_errors() {
 
 		global $avatars_path;
 
-		$filesystem = new WP_Filesystem_Direct();
-
 		// check if old directory exists
 		if ( is_dir( ABSPATH . 'wp-content/avatars/' ) && !is_dir( ABSPATH . $avatars_path ) ) {
+			require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
+			require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
+
+			$filesystem = new WP_Filesystem_Direct( false );
+
 			if( $filesystem->move( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) {
 				$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatar' ), ABSPATH . $avatars_path );
 			} else {
