@@ -5,6 +5,13 @@ Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+3.5.2 - 12/07/2010
+----------------------------------------------------------------------
+- Enhancement: no avatar for pingbacks and trackbacks
+- Enhancement: added 'alt' parameter to get_avatar
+- Enhancement: better filesystem handling
+- Bug fix: images missing on admin page "Settings > Discussion"
+
 3.5.1 - 12/07/2010
 ----------------------------------------------------------------------
 - Better file handling

@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://incsub.com
-Version: 3.5.1
+Version: 3.5.2
 Text Domain: avatars
 WDP ID: 10
 */
@@ -41,7 +41,7 @@ $default_blog_avatar = 'identicon'; //'local_default', 'gravatar_default', 'iden
 $local_default_avatar_url = WPMU_PLUGIN_URL . '/avatars-files/images/default-avatar-';
 $local_default_avatar_path = WPMU_PLUGIN_DIR . '/avatars-files/images/default-avatar-';
 
-define( 'AVATAR_VERSION', '3.5.1' );
+define( 'AVATAR_VERSION', '3.5.2' );
 
 load_muplugin_textdomain( 'avatars', 'avatars-files/languages' );
 
@@ -94,20 +94,52 @@ function avatars_admin_errors() {
 
 	} else {
 
-		global $avatars_path;
+		global $avatars_path, $wp_filesystem;
 
 		// check if old directory exists
 		if ( is_dir( ABSPATH . 'wp-content/avatars/' ) && !is_dir( ABSPATH . $avatars_path ) ) {
 			require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
 			require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
 
-			$filesystem = new WP_Filesystem_Direct( false );
+			// temporarily stores existing filesystem object
+			if( isset( $wp_filesystem ) )
+				$orig_filesystem = wp_clone( $wp_filesystem );
 
-			if( $filesystem->move( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) {
-				$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatar' ), ABSPATH . $avatars_path );
+			$wp_filesystem = new WP_Filesystem_Direct( false );
+
+			// Set the permission constants if not already set.
+			if ( ! defined('FS_CHMOD_DIR') )
+				define('FS_CHMOD_DIR', 0755 );
+			if ( ! defined('FS_CHMOD_FILE') )
+				define('FS_CHMOD_FILE', 0644 );
+
+			if ( $wp_filesystem->mkdir( ABSPATH . $avatars_path, FS_CHMOD_DIR ) ) { // create new avatars directory
+
+				if( copy_dir( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) { // copy files to new directory
+
+					if( $wp_filesystem->delete( ABSPATH . 'wp-content/avatars/', true ) ) // attempt delete of old folder
+						$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatar' ), ABSPATH . $avatars_path );
+					else
+						$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been copied. Please verify that everything is working fine and delete the old folder manually.', 'avatar' ), ABSPATH . $avatars_path );
+
+				} else { // unsuccessful copy, warns user
+
+						$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure that directory is writable by the server.', 'avatar' ), ABSPATH . $avatars_path );
+
+				}
+
 			} else {
-				$message = sprintf( __( 'The Avatars plugin now store files in %s. Please move your old folder.', 'avatar' ), ABSPATH . $avatars_path );
+
+				$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure its parent directory is writable by the server.', 'avatar' ), ABSPATH . $avatars_path );
+
 			}
+
+			// we are finished with our custom filesystem object, let's unset it
+			unset( $wp_filesystem );
+
+			// restore original filesystem object
+			if( isset( $orig_filesystem ) )
+				$wp_filesystem = wp_clone( $orig_filesystem );
 
 			echo "<div class='error'><p>$message</p></div>";
 		}
@@ -321,102 +353,131 @@ function avatars_size_map($size) {
 //------------------------------------------------------------------------//
 
 // return avatar image
-function get_avatar( $id_or_email, $size = '96', $default = '' ) {
-	global $current_site, $default_avatar_rating, $wpdb, $user_avatars_path, $default_user_avatar, $current_site, $local_default_avatar_url;
-	//if ( ! get_option('show_avatars') )
-	//	return false;
+function get_avatar( $id_or_email, $size = '96', $default = '', $alt = false ) {
+	global $current_site, $default_avatar_rating, $wpdb, $user_avatars_path, $default_user_avatar, $local_default_avatar_url;
 
-	if ( !is_numeric($size) ) {
+	if ( ! get_option( 'show_avatars' ) )
+		return false;
+
+	if ( false === $alt )
+		$safe_alt = '';
+	else
+		$safe_alt = esc_attr( $alt );
+
+	if ( !is_numeric( $size ) )
 		$size = '96';
-	}
-	$size = avatars_size_map($size);
+
+	$size = avatars_size_map( $size );
 
 	$email = '';
-	if ( is_numeric($id_or_email) ) {
+	if ( is_numeric( $id_or_email ) ) {
 		$id = (int) $id_or_email;
-		$user = get_userdata($id);
+		$user = get_userdata( $id );
 		if ( $user )
 			$email = $user->user_email;
-	} elseif ( is_object($id_or_email) ) {
-		if ( !empty($id_or_email->user_id) ) {
+	} elseif ( is_object( $id_or_email ) ) {
+		// No avatar for pingbacks or trackbacks
+		$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment' ) );
+		if ( ! empty( $id_or_email->comment_type ) && ! in_array( $id_or_email->comment_type, (array) $allowed_comment_types ) )
+			return false;
+
+		if ( !empty( $id_or_email->user_id ) ) {
 			$id = (int) $id_or_email->user_id;
-			$user = get_userdata($id);
-			if ( $user)
+			$user = get_userdata( $id );
+			if ( $user )
 				$email = $user->user_email;
-		} elseif ( !empty($id_or_email->comment_author_email) ) {
+		} elseif ( !empty( $id_or_email->comment_author_email ) ) {
 			$email = $id_or_email->comment_author_email;
 		}
 	} else {
 		$email = $id_or_email;
 	}
-	if ( empty($default) ) {
-		$default = get_option('avatar_default');
-		if ( empty($default) ) {
+
+	if ( empty( $default ) ) {
+		$avatar_default = get_option( 'avatar_default' );
+		if ( empty( $avatar_default ) )
 			$default = $default_user_avatar;
-		}
+		else
+			$default = $avatar_default;
 	}
 
-	if ( $default == 'local_default' ) {
+	if ( !empty( $email ) )
+		$email_hash = md5( strtolower( $email ) );
+
+	if ( is_ssl() ) {
+		$host = 'https://secure.gravatar.com';
+	} else {
+		if ( !empty( $email ) )
+			$host = sprintf( "http://%d.gravatar.com", ( hexdec( $email_hash{0} ) % 2 ) );
+		else
+			$host = 'http://0.gravatar.com';
+	}
+
+	if( 'local_default' == $default )
 		$default = $local_default_avatar_url . $size . '.png';
-	} else if ( $default == 'gravatar_default' ) {
-		$default = 'http://www.gravatar.com/avatar/' . md5($email) . '?r=G&s=' . $size;
-	} else if ( $default == 'identicon' ) {
-		$default = 'http://www.gravatar.com/avatar/' . md5($email) . '?r=G&d=identicon&s=' . $size;
-	} else if ( $default == 'wavatar' ) {
-		$default = 'http://www.gravatar.com/avatar/' . md5($email) . '?r=G&d=wavatar&s=' . $size;
-	} else if ( $default == 'monsterid' ) {
-		$default = 'http://www.gravatar.com/avatar/' . md5($email) . '?r=G&d=monsterid&s=' . $size;
-	} else {
-		$default = $local_default_avatar_url . $size . '.png';
-	}
+	elseif( 'mystery' == $default )
+		$default = "$host/avatar/ad516503a11cd5ca435acc9bb6523536?s={$size}"; // ad516503a11cd5ca435acc9bb6523536 == md5('unknown@gravatar.com')
+	elseif( 'blank' == $default )
+		$default = includes_url('images/blank.gif');
+	elseif( !empty($email) && 'gravatar_default' == $default )
+		$default = '';
+	elseif( 'gravatar_default' == $default )
+		$default = "$host/avatar/s={$size}";
+	elseif( empty($email) )
+		$default = "$host/avatar/?d=$default&amp;s={$size}";
+	elseif( strpos($default, 'http://') === 0 )
+		$default = add_query_arg( 's', $size, $default );
 
-	if ( empty($default_avatar_rating) ) {
-		$rating = get_option('avatar_rating');
-	} else {
-		$rating = $default_avatar_rating;
-	}
+	if( !empty( $id ) || !empty( $email ) ) {
 
-	if ( !empty($id) ) {
-		//user exists locally - check if avatar exists
-		$file = ABSPATH . $user_avatars_path . substr(md5($id), 0, 3) . '/user-' . $id . '-' . $size . '.png';
-		if ( is_file( $file ) ) {
-			$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
-			if ( $page == 'user-avatar' || $page == 'blog-avatar' || $page == 'edit-user-avatar' || $page == 'edit-blog-avatar') {
-				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $id . '-' . $size . '.png?rand=' . md5(time());
-			} else {
-				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $id . '-' . $size . '.png';
+		if ( !empty( $id ) ) {
+
+			//user exists locally - check if avatar exists
+			if ( is_file( ABSPATH . $user_avatars_path . substr( md5( $id ), 0, 3 ) . '/user-' . $id . '-' . $size . '.png' ) ) {
+				$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
+				if ( 'user-avatar' == $page || 'blog-avatar' == $page || 'edit-user-avatar' == $page || 'edit-blog-avatar' == $page )
+					$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $id . '-' . $size . '.png?rand=' . md5( time() );
+				else
+					$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $id . '-' . $size . '.png';
 			}
-		} else {
-			$path = $default;
+
+		} else if ( !empty( $email ) ) {
+
+			if ( avatar_email_exists( $email ) ) {
+				//email exists locally - check if avatar exists
+				$avatar_user = get_user_by_email( $email );
+				$avatar_user_id = $avatar_user->ID;
+				$file = ABSPATH . $user_avatars_path . substr( md5( $avatar_user_id ), 0, 3 ) . '/user-' . $avatar_user_id . '-' . $size . '.png';
+
+				if ( is_file( $file ) ) {
+					if ( isset( $_GET['page'] ) && 'user-avatar' == $_GET['page'] )
+						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png?rand=' . md5( time() );
+					else
+						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
+				}
+			}
+
 		}
-		$avatar = "<img alt='' src='{$path}' class='avatar avatar-{$size}' height='{$size}' width='{$size}' />";
-	} else if ( !empty($email) ) {
-		if ( avatar_email_exists($email) ) {
-			//email exists locally - check if avatar exists
-		 	$avatar_user_id = $wpdb->get_var("SELECT ID FROM $wpdb->users WHERE user_email = '" . $email . "'" );
-			$file = ABSPATH . $user_avatars_path . substr(md5($avatar_user_id), 0, 3) . '/user-' . $avatar_user_id . '-' . $size . '.png';
-			if ( is_file( $file ) ) {
-			if ( isset( $_GET['page'] ) && $_GET['page'] == 'user-avatar' ) {
-				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png?rand=' . md5(time());
-			} else {
-				$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
-			}
-			} else {
-				$path = $default;
-			}
-		} else {
-			//email does not exist locally - get gravatar
-			$path = 'http://www.gravatar.com/avatar/';
-			$path .= md5( strtolower( $email ) );
-			$path .= '?s='.$size;
-			$path .= '&amp;d=' . urlencode( $default );
-			$path .= '&amp;r=' . $rating;
+
+		if( empty( $out ) ) {
+			$out = "$host/avatar/";
+			$out .= $email_hash;
+			$out .= '?s='.$size;
+			$out .= '&amp;d=' . urlencode( $default );
+
+			$rating = get_option('avatar_rating');
+			if ( !empty( $rating ) )
+				$out .= "&amp;r={$rating}";
 		}
-		$avatar = "<img alt='' src='{$path}' class='avatar avatar-{$size}' height='{$size}' width='{$size}' />";
+
+		$avatar = "<img alt='{$safe_alt}' src='{$out}' class='avatar avatar-{$size} photo' height='{$size}' width='{$size}' />";
+
 	} else {
-		$avatar = "<img alt='' src='{$default}' class='avatar avatar-{$size} avatar-default' height='{$size}' width='{$size}' />";
+
+		$avatar = "<img alt='{$safe_alt}' src='{$default}' class='avatar avatar-{$size} photo avatar-default' height='{$size}' width='{$size}' />";
+
 	}
-	return $avatar;
+	return apply_filters( 'get_avatar', $avatar, $id_or_email, $size, $default, $alt );
 }
 
 // return blog avatar
