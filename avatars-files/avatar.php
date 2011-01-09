@@ -24,7 +24,7 @@ if ( !is_file( $file ) ) {
 				$file = 'http://www.gravatar.com/avatar/' . md5($tmp_avatar_id) . '?r=G&d=' . $default_blog_avatar . '&s=' . $tmp_avatar_size;
 			}
 		} else {
-			if ( $default_user_avatar == 'local_default' ) {
+			if ( empty( $default_user_avatar ) || 'local_default' == $default_user_avatar ) {
 				$file = $local_default_avatar_path . $tmp_avatar_size . '.png';
 			} else {
 				$file = 'http://www.gravatar.com/avatar/' . md5($tmp_avatar_id) . '?r=G&d=' . $default_user_avatar . '&s=' . $tmp_avatar_size;
@@ -60,15 +60,7 @@ if ( $default_avatar == "1" ) {
 		imagewbmp($image, null, 9);
 	}
 } else {
-
-	$mime = wp_check_filetype( $_SERVER[ 'REQUEST_URI' ] );
-	if( $mime[ 'type' ] != false ) {
-		$mimetype = $mime[ 'type' ];
-	} else {
-		$ext = substr( $_SERVER[ 'REQUEST_URI' ], strrpos( $_SERVER[ 'REQUEST_URI' ], '.' ) + 1 );
-		$mimetype = "image/$ext";
-	}
-	//@header( 'Content-type: ' . $mimetype ); // always send this
+	@header( 'Content-type: image/png' );
 
 	$timestamp = filemtime( $file );
 
