@@ -4,7 +4,7 @@ Plugin Name: Avatars (BBPress)
 Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
-Version: 3.5.1
+Version: 3.5.3
 Author URI: http://incsub.com
 */
 

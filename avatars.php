@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.5.2
+Version: 3.5.3
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -1245,21 +1245,23 @@ class Avatars {
 			if ( $avatar_user_id = email_exists( $email ) ) { // email exists locally - check if file exists
 				$file = ABSPATH . $user_avatars_path . substr( md5( $avatar_user_id ), 0, 3 ) . '/user-' . $avatar_user_id . '-' . $size . '.png';
 
-				if ( is_file( $file ) && !( isset( $current_screen->id ) && is_object( $current_screen->id ) && 'options-discussion' == $current_screen->id ) ) { // if file exists and we are not on the discussion options page
+				if ( is_file( $file ) && ! ( isset( $current_screen->id ) && 'options-discussion' == $current_screen->id ) ) { // if file exists and we are not on the discussion options page
 					if ( isset( $_GET['page'] ) && 'user-avatar' == $_GET['page'] )
 						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png?rand=' . md5( time() );
 					else
 						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
-				} else {
-					$out = "$host/avatar/";
-					$out .= $email_hash;
-					$out .= '?s='.$size;
-					$out .= '&amp;d=' . urlencode( $default );
-
-					$rating = get_option('avatar_rating');
-					if ( !empty( $rating ) )
-						$out .= "&amp;r={$rating}";
 				}
+			}
+
+			if( empty( $out ) ) {
+				$out = "$host/avatar/";
+				$out .= $email_hash;
+				$out .= '?s='.$size;
+				$out .= '&amp;d=' . urlencode( $default );
+
+				$rating = get_option('avatar_rating');
+				if ( !empty( $rating ) )
+					$out .= "&amp;r={$rating}";
 			}
 
 			$avatar = "<img alt='{$safe_alt}' src='{$out}' class='avatar avatar-{$size} photo' height='{$size}' width='{$size}' />";
@@ -1459,6 +1461,6 @@ if ( !function_exists( 'wdp_un_check' ) ) {
 
 	function wdp_un_check() {
 		if ( !class_exists( 'WPMUDEV_Update_Notifications' ) && current_user_can( 'edit_users' ) )
-			echo '<div class="error fade"><p>' . __('Please install the latest version of <a href="http://premium.wpmudev.org/project/update-notifications/" title="Download Now &raquo;">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">More information &raquo;</a>', 'wpmudev') . '</a></p></div>';
+			echo '<div class="error fade"><p>' . __('Please install the latest version of <a href="http://premium.wpmudev.org/project/update-notifications/" title="Download Now &raquo;">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href="http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/">More information &raquo;</a>', 'wpmudev') . '</p></div>';
 	}
 }
