@@ -1,0 +1,214 @@
+# Translation of the WordPress plugin Avatars For Multisite 3.5.4 by Andrew Billits, Ulrich Sossou (Incsub).
+# Copyright (C) 2011 Andrew Billits, Ulrich Sossou (Incsub)
+# This file is distributed under the same license as the Avatars For Multisite package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Avatars For Multisite 3.5.4\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/avatars\n"
+"POT-Creation-Date: 2011-01-18 11:43+0100\n"
+"PO-Revision-Date: 2011-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: avatars-files/avatar.php:10
+msgid "Invalid Request"
+msgstr ""
+
+#: avatars-files/avatar.php:15
+msgid "404 &#8212; Invalid Avatar Type."
+msgstr ""
+
+#: avatars-files/avatar.php:18
+msgid "404 &#8212; Invalid Avatar Size."
+msgstr ""
+
+#: avatars.php:32
+msgid "The avatars plugin is only compatible with WordPress Multisite."
+msgstr ""
+
+#: avatars.php:113
+msgid ""
+"BuddyPress has it's own avatar system. The Avatars plugin functions have "
+"been deactivated. Please remove the files."
+msgstr ""
+
+#: avatars.php:142
+#, php-format
+msgid ""
+"The Avatars plugin now store files in %s. Your old folder has been moved."
+msgstr ""
+
+#: avatars.php:144
+#, php-format
+msgid ""
+"The Avatars plugin now store files in %s. Your old folder has been copied. "
+"Please verify that everything is working fine and delete the old folder "
+"manually."
+msgstr ""
+
+#: avatars.php:148
+#, php-format
+msgid ""
+"The Avatars plugin now store files in %s. Please make sure that directory is "
+"writable by the server."
+msgstr ""
+
+#: avatars.php:154
+#, php-format
+msgid ""
+"The Avatars plugin now store files in %s. Please make sure its parent "
+"directory is writable by the server."
+msgstr ""
+
+#: avatars.php:170
+#, php-format
+msgid ""
+"The Avatars plugin was unable to create directory %s. Is its parent "
+"directory writable by the server?"
+msgstr ""
+
+#: avatars.php:219
+msgid "Local (Avatars plugin)"
+msgstr ""
+
+#: avatars.php:271 avatars.php:274 avatars.php:892
+msgid "Blog Avatar"
+msgstr ""
+
+#: avatars.php:277 avatars.php:279 avatars.php:1011
+msgid "Your Avatar"
+msgstr ""
+
+#: avatars.php:284 avatars.php:294
+msgid "Edit User Avatar"
+msgstr ""
+
+#: avatars.php:342
+msgid ""
+"This is your \"user\" avatar. It will appear whenever you leave comments, "
+"post in the forums and when your popular posts are displayed around the site."
+msgstr ""
+
+#: avatars.php:346 avatars.php:348
+msgid "Change Avatar"
+msgstr ""
+
+#: avatars.php:472 avatars.php:598 avatars.php:727 avatars.php:842
+#: avatars.php:949 avatars.php:1080
+msgid "There was an error uploading the file, please try again."
+msgstr ""
+
+#: avatars.php:578 avatars.php:581 avatars.php:709
+msgid "Avatar reset."
+msgstr ""
+
+#: avatars.php:645 avatars.php:648 avatars.php:687 avatars.php:690
+#: avatars.php:770 avatars.php:805
+msgid "Avatar updated."
+msgstr ""
+
+#: avatars.php:821
+msgid "Nice Try..."
+msgstr ""
+
+#: avatars.php:866 avatars.php:885 avatars.php:974 avatars.php:1003
+#: avatars.php:1104 avatars.php:1123
+msgid "Crop Image"
+msgstr ""
+
+#: avatars.php:869 avatars.php:987 avatars.php:1107
+msgid "Choose the part of the image you want to use as the avatar."
+msgstr ""
+
+#: avatars.php:894
+msgid ""
+"This is your \"blog\" avatar. It will appear whenever your blog is listed "
+"(for example, on the front page of the site)."
+msgstr ""
+
+#: avatars.php:897 avatars.php:1028 avatars.php:1135
+msgid "Upload New Avatar"
+msgstr ""
+
+#: avatars.php:902
+msgid "Allowed Formats: jpeg, gif, and png"
+msgstr ""
+
+#: avatars.php:903 avatars.php:1034
+msgid ""
+"If you are experiencing problems cropping your image please use the "
+"alternative upload method (\"Alternative Upload\" button)."
+msgstr ""
+
+#: avatars.php:905 avatars.php:1036 avatars.php:1143
+msgid "Upload"
+msgstr ""
+
+#: avatars.php:906 avatars.php:1037 avatars.php:1144
+msgid "Alternative Upload"
+msgstr ""
+
+#: avatars.php:907 avatars.php:1038 avatars.php:1145
+msgid "Reset"
+msgstr ""
+
+#: avatars.php:1033 avatars.php:1140
+msgid "Allowed Formats:jpeg, gif, and png"
+msgstr ""
+
+#: avatars.php:1132
+msgid "User Avatar"
+msgstr ""
+
+#: avatars.php:1141
+msgid ""
+"If you are experiencing problems cropping the image please use the "
+"alternative upload method (\"Alternative Upload\" button)."
+msgstr ""
+
+#: avatars.php:1389
+msgid "Avatars Widget"
+msgstr ""
+
+#: avatars.php:1414
+msgid "Title:"
+msgstr ""
+
+#: avatars.php:1474
+msgid ""
+"Please install the latest version of <a href=\"http://premium.wpmudev.org/"
+"project/update-notifications/\" title=\"Download Now &raquo;\">our free "
+"Update Notifications plugin</a> which helps you stay up-to-date with the "
+"most stable, secure versions of WPMU DEV themes and plugins. <a href="
+"\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-"
+"information/\">More information &raquo;</a>"
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Avatars For Multisite"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "http://premium.wpmudev.org/project/avatars"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Allows users to upload 'user avatars' and 'blog avatars' which then can "
+"appear in comments and blog / user listings around the site"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Andrew Billits, Ulrich Sossou (Incsub)"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "http://premium.wpmudev.org/"
+msgstr ""

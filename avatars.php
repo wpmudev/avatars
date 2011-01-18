@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.5.3
+Version: 3.5.4
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -64,7 +64,7 @@ class Avatars {
 	/**
 	 * Current version of the plugin
 	 **/
-	var $current_version = '3.5.3';
+	var $current_version = '3.5.4';
 
 	/**
 	 * PHP4 constructor
@@ -1153,6 +1153,16 @@ class Avatars {
 	}
 
 	/**
+	 * Checks whether the given email exists.
+	 */
+	function email_exists( $email ) {
+		if ( $user = get_user_by_email( $email ) )
+			return $user->ID;
+
+		return false;
+	}
+
+	/**
 	 * Delete temporary file.
 	 **/
 	function delete_temp( $file ) {
@@ -1242,7 +1252,7 @@ class Avatars {
 			$default = add_query_arg( 's', $size, $default );
 
 		if ( !empty($email) ) {
-			if ( $avatar_user_id = email_exists( $email ) ) { // email exists locally - check if file exists
+			if ( $avatar_user_id = $this->email_exists( $email ) ) { // email exists locally - check if file exists
 				$file = ABSPATH . $user_avatars_path . substr( md5( $avatar_user_id ), 0, 3 ) . '/user-' . $avatar_user_id . '-' . $size . '.png';
 
 				if ( is_file( $file ) && ! ( isset( $current_screen->id ) && 'options-discussion' == $current_screen->id ) ) { // if file exists and we are not on the discussion options page
@@ -1352,7 +1362,7 @@ class Avatars {
 		if ( !get_option('show_avatars') )
 			return false;
 
-		if ( $user_ID = email_exists( $user_email ) ) {
+		if ( $user_ID = $this->email_exists( $user_email ) ) {
 			$blog_ID = get_usermeta( $user_ID, 'primary_blog' );
 			if ( !empty( $blog_ID ) ) {
 				$blog = $wpdb->get_var( $wpdb->prepare( "SELECT domain, path FROM {$wpdb->base_prefix}blogs WHERE blog_id = '%s'", $blog_ID ) );
