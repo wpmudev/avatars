@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.5.4
+Version: 3.5.5
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -110,7 +110,7 @@ class Avatars {
 		// check if BuddyPress is installed
 		if( defined( 'BP_VERSION' ) ) {
 
-			$message = sprintf( __( 'BuddyPress has it\'s own avatar system. The Avatars plugin functions have been deactivated. Please remove the files.', 'avatar' ), ABSPATH . $avatars_path );
+			$message = sprintf( __( 'BuddyPress has it\'s own avatar system. The Avatars plugin functions have been deactivated. Please remove the files.', 'avatars' ), ABSPATH . $avatars_path );
 			echo "<div class='error'><p>$message</p></div>";
 
 		} else {
@@ -139,19 +139,19 @@ class Avatars {
 					if( copy_dir( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) { // copy files to new directory
 
 						if( $wp_filesystem->delete( ABSPATH . 'wp-content/avatars/', true ) ) // attempt delete of old folder
-							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatar' ), ABSPATH . $avatars_path );
+							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatars' ), ABSPATH . $avatars_path );
 						else
-							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been copied. Please verify that everything is working fine and delete the old folder manually.', 'avatar' ), ABSPATH . $avatars_path );
+							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been copied. Please verify that everything is working fine and delete the old folder manually.', 'avatars' ), ABSPATH . $avatars_path );
 
 					} else { // unsuccessful copy, warns user
 
-							$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure that directory is writable by the server.', 'avatar' ), ABSPATH . $avatars_path );
+							$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure that directory is writable by the server.', 'avatars' ), ABSPATH . $avatars_path );
 
 					}
 
 				} else {
 
-					$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure its parent directory is writable by the server.', 'avatar' ), ABSPATH . $avatars_path );
+					$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure its parent directory is writable by the server.', 'avatars' ), ABSPATH . $avatars_path );
 
 				}
 
@@ -167,7 +167,7 @@ class Avatars {
 
 			// check if plugin directory exists
 			if ( ! wp_mkdir_p( ABSPATH . $avatars_path ) ) {
-				$message = sprintf( __( 'The Avatars plugin was unable to create directory %s. Is its parent directory writable by the server?', 'avatar' ), ABSPATH . $avatars_path );
+				$message = sprintf( __( 'The Avatars plugin was unable to create directory %s. Is its parent directory writable by the server?', 'avatars' ), ABSPATH . $avatars_path );
 				echo "<div class='error'><p>$message</p></div>";
 			}
 
@@ -216,7 +216,7 @@ class Avatars {
 	 * Add local avatar in the defaults list.
 	 **/
 	function defaults( $avatar_defaults ) {
-		$avatar_defaults['local_default'] = __( 'Local (Avatars plugin)' );
+		$avatar_defaults['local_default'] = __( 'Local (Avatars plugin)', 'avatars' );
 		return $avatar_defaults;
 	}
 
@@ -343,9 +343,9 @@ class Avatars {
 					<?php echo get_avatar( $profileuser->ID ); ?><br>
 					<?php
 					if( IS_PROFILE_PAGE )
-						echo '<a href="' . admin_url( "$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar' ) . '</a></td>';
+						echo '<a href="' . admin_url( "$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
 					else
-						echo '<a href="' . admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid=$profileuser->ID" ) . '">' . __( 'Change Avatar' ) . '</a></td>';
+						echo '<a href="' . admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid=$profileuser->ID" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
 					?>
 				</tr>
 			</tbody>
@@ -502,6 +502,11 @@ class Avatars {
 							$im = ImageCreateFromgif($avatar_path . basename( $_FILES['avatar_file']['name']));
 						}
 
+						if (!$im) {
+							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
+							return false;
+						}
+
 						foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
 							$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
 							imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
@@ -536,6 +541,11 @@ class Avatars {
 					}
 					if ($_POST['image_type'] == 'gif'){
 						$im = ImageCreateFromgif($_POST['file_path'] . $_POST['file_name']);
+					}
+
+					if (!$im) {
+						echo __( 'There was an error uploading the file, please try again.', 'avatars' );
+						return false;
 					}
 
 					foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
@@ -629,6 +639,11 @@ class Avatars {
 							$im = ImageCreateFromgif($avatar_path . basename( $_FILES['avatar_file']['name']));
 						}
 
+						if (!$im) {
+							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
+							return false;
+						}
+
 						foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
 							$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
 							imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
@@ -667,6 +682,11 @@ class Avatars {
 					}
 					if ($_POST['image_type'] == 'gif'){
 						$im = ImageCreateFromgif($_POST['file_path'] . $_POST['file_name']);
+					}
+
+					if (!$im) {
+						echo __( 'There was an error uploading the file, please try again.', 'avatars' );
+						return false;
 					}
 
 					foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
@@ -757,6 +777,11 @@ class Avatars {
 							$im = ImageCreateFromgif($avatar_path . basename( $_FILES['avatar_file']['name']));
 						}
 
+						if (!$im) {
+							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
+							return false;
+						}
+
 						foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
 							$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
 							imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
@@ -787,6 +812,11 @@ class Avatars {
 					}
 					if ($_POST['image_type'] == 'gif'){
 						$im = ImageCreateFromgif($_POST['file_path'] . $_POST['file_name']);
+					}
+
+					if (!$im) {
+						echo __( 'There was an error uploading the file, please try again.', 'avatars' );
+						return false;
 					}
 
 					foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
