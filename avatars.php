@@ -198,6 +198,7 @@ class Avatars {
 			// settings pages
 			add_action( 'network_admin_menu', array( &$this, 'network_admin_page' ) );
 			add_action( 'admin_menu', array( &$this, 'plug_pages' ) );
+			add_action( 'user_admin_menu', array( &$this, 'user_plug_pages' ) );
 			add_action( 'custom_menu_order', array( &$this, 'admin_menu' ) );
 			add_filter( 'whitelist_options', array( &$this, 'whitelist' ) );
 
@@ -275,7 +276,7 @@ class Avatars {
 		}
 		if ( current_user_can('edit_users') ) {
 			add_submenu_page('users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'manage_options', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
-		} else {
+		} else if (is_super_admin()) {
 			add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
 		}
 		if ( is_super_admin() && isset( $_GET['page'] ) && $_GET['page'] == 'edit-user-avatar' ) {
@@ -283,6 +284,10 @@ class Avatars {
 			if( !version_compare( $wp_version , '3.0.9', '>' ) )
 				add_submenu_page( $this->network_top_menu, __( 'Edit User Avatar', 'avatars' ), __( 'Edit User Avatar', 'avatars' ), 'manage_network_options', 'edit-user-avatar', array( &$this, 'page_site_admin_edit_user_avatar' ) );
 		}
+	}
+	
+	function user_plug_pages() {
+		add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'exist', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
 	}
 
 	/**
@@ -325,8 +330,8 @@ class Avatars {
 			unset( $submenu['settings.php'][$key] );
 
 		$key = $this->array_find_r( 'user-avatar', $submenu );
-		unset( $submenu['users.php'][$key] );
-		unset( $submenu['profile.php'][$key] );
+		//unset( $submenu['users.php'][$key] );
+		//unset( $submenu['profile.php'][$key] );
 	}
 
 	/**
@@ -343,7 +348,10 @@ class Avatars {
 					<?php echo get_avatar( $profileuser->ID ); ?><br>
 					<?php
 					if( IS_PROFILE_PAGE )
-						echo '<a href="' . admin_url( "$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
+						if ( is_user_admin() )
+							echo '<a href="' . admin_url( "user/$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
+						else
+							echo '<a href="' . admin_url( "$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
 					else
 						echo '<a href="' . admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid=$profileuser->ID" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
 					?>
@@ -1186,7 +1194,7 @@ class Avatars {
 	 * Checks whether the given email exists.
 	 */
 	function email_exists( $email ) {
-		if ( $user = get_user_by_email( $email ) )
+		if ( $user = get_user_by('email', $email ) )
 			return $user->ID;
 
 		return false;
