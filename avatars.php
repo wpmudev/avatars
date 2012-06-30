@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.5.7.1
+Version: 3.5.8
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -206,8 +206,9 @@ class Avatars {
 			$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
 			if ( $page == 'blog-avatar' || $page == 'user-avatar' || $page == 'edit-user-avatar' || $page == 'edit-blog-avatar' ) {
 				if ( isset($_GET['action']) && $_GET['action'] == 'upload_process' ) {
-					add_action( 'admin_head', array( &$this, 'plug_scripts' ) );
-					add_action( 'init', array( &$this, 'enqueue_scripts' ) );
+					add_action('admin_print_scripts', array($this, 'enqueue_scripts'), 1);
+					add_action('admin_print_scripts', array($this, 'plug_scripts'), 99);
+					//add_action( 'init', array( &$this, 'enqueue_scripts' ) );
 				}
 			}
 		}
@@ -276,8 +277,9 @@ class Avatars {
 		}
 		if ( current_user_can('edit_users') ) {
 			add_submenu_page('users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'manage_options', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
+		} else {
+			add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
 		}
-		add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
 
 		if ( is_super_admin() && isset( $_GET['page'] ) && $_GET['page'] == 'edit-user-avatar' ) {
 			add_action( 'admin_page_edit', 'page_site_admin_edit_user_avatar' );
@@ -369,7 +371,7 @@ class Avatars {
 		?>
 		<script type='text/javascript' src='<?php echo get_option('siteurl'); ?>/wp-includes/js/crop/cropper.js'></script>
 		<script type="text/javascript">
-
+		
 			function onEndCrop( coords, dimensions ) {
 				$( 'x1' ).value = coords.x1;
 				$( 'y1' ).value = coords.y1;
