@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Avatars For Multisite 3.5.4\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-28 09:01+0100\n"
-"PO-Revision-Date: 2011-07-28 09:02+0100\n"
+"POT-Creation-Date: 2012-12-15 15:03+0100\n"
+"PO-Revision-Date: 2012-12-15 15:03+0100\n"
 "Last-Translator: \n"
 "Language-Team: Incsub\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: \n"
 "X-Poedit-KeywordsList: __;_e\n"
 "X-Poedit-Basepath: D:\\xampp\\htdocs\\hub3.2\\wp-content\\plugins\\avatars\n"
+"X-Generator: Poedit 1.5.4\n"
 "X-Poedit-SearchPath-0: avatars-files\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -37,172 +37,164 @@ msgid "The avatars plugin is only compatible with WordPress Multisite."
 msgstr ""
 
 #: avatars.php:113
-msgid "BuddyPress has it's own avatar system. The Avatars plugin functions have been deactivated. Please remove the files."
+msgid ""
+"BuddyPress has it's own avatar system. The Avatars plugin functions have "
+"been deactivated. Please remove the files."
 msgstr ""
 
 #: avatars.php:142
 #, php-format
-msgid "The Avatars plugin now store files in %s. Your old folder has been moved."
+msgid ""
+"The Avatars plugin now store files in %s. Your old folder has been moved."
 msgstr ""
 
 #: avatars.php:144
 #, php-format
-msgid "The Avatars plugin now store files in %s. Your old folder has been copied. Please verify that everything is working fine and delete the old folder manually."
+msgid ""
+"The Avatars plugin now store files in %s. Your old folder has been copied. "
+"Please verify that everything is working fine and delete the old folder "
+"manually."
 msgstr ""
 
 #: avatars.php:148
 #, php-format
-msgid "The Avatars plugin now store files in %s. Please make sure that directory is writable by the server."
+msgid ""
+"The Avatars plugin now store files in %s. Please make sure that directory is "
+"writable by the server."
 msgstr ""
 
 #: avatars.php:154
 #, php-format
-msgid "The Avatars plugin now store files in %s. Please make sure its parent directory is writable by the server."
+msgid ""
+"The Avatars plugin now store files in %s. Please make sure its parent "
+"directory is writable by the server."
 msgstr ""
 
 #: avatars.php:170
 #, php-format
-msgid "The Avatars plugin was unable to create directory %s. Is its parent directory writable by the server?"
+msgid ""
+"The Avatars plugin was unable to create directory %s. Is its parent "
+"directory writable by the server?"
 msgstr ""
 
-#: avatars.php:219
+#: avatars.php:221
 msgid "Local (Avatars plugin)"
 msgstr ""
 
-#: avatars.php:271
-#: avatars.php:274
-#: avatars.php:922
+#: avatars.php:274 avatars.php:277 avatars.php:934
 msgid "Blog Avatar"
 msgstr ""
 
-#: avatars.php:277
-#: avatars.php:279
-#: avatars.php:1041
+#: avatars.php:280 avatars.php:282 avatars.php:293 avatars.php:1053
 msgid "Your Avatar"
 msgstr ""
 
-#: avatars.php:284
-#: avatars.php:294
+#: avatars.php:288 avatars.php:302
 msgid "Edit User Avatar"
 msgstr ""
 
-#: avatars.php:342
-msgid "This is your \"user\" avatar. It will appear whenever you leave comments, post in the forums and when your popular posts are displayed around the site."
+#: avatars.php:346
+msgid "Avatar Settings"
 msgstr ""
 
-#: avatars.php:346
-#: avatars.php:348
+#: avatars.php:351
+msgid ""
+"This is your \"user\" avatar. It will appear whenever you leave comments, "
+"post in the forums and when your popular posts are displayed around the site."
+msgstr ""
+
+#: avatars.php:356 avatars.php:358 avatars.php:360
 msgid "Change Avatar"
 msgstr ""
 
-#: avatars.php:472
-#: avatars.php:506
-#: avatars.php:547
-#: avatars.php:608
-#: avatars.php:643
-#: avatars.php:688
-#: avatars.php:747
-#: avatars.php:781
-#: avatars.php:818
-#: avatars.php:872
-#: avatars.php:979
-#: avatars.php:1110
+#: avatars.php:484 avatars.php:518 avatars.php:559 avatars.php:620
+#: avatars.php:655 avatars.php:700 avatars.php:759 avatars.php:793
+#: avatars.php:830 avatars.php:884 avatars.php:991 avatars.php:1122
 msgid "There was an error uploading the file, please try again."
 msgstr ""
 
-#: avatars.php:588
-#: avatars.php:591
-#: avatars.php:729
+#: avatars.php:600 avatars.php:603 avatars.php:741
 msgid "Avatar reset."
 msgstr ""
 
-#: avatars.php:660
-#: avatars.php:663
-#: avatars.php:707
-#: avatars.php:710
-#: avatars.php:795
-#: avatars.php:835
+#: avatars.php:672 avatars.php:675 avatars.php:719 avatars.php:722
+#: avatars.php:807 avatars.php:847
 msgid "Avatar updated."
 msgstr ""
 
-#: avatars.php:851
+#: avatars.php:863
 msgid "Nice Try..."
 msgstr ""
 
-#: avatars.php:896
-#: avatars.php:915
-#: avatars.php:1004
-#: avatars.php:1033
-#: avatars.php:1134
-#: avatars.php:1153
+#: avatars.php:908 avatars.php:927 avatars.php:1016 avatars.php:1045
+#: avatars.php:1146 avatars.php:1165
 msgid "Crop Image"
 msgstr ""
 
-#: avatars.php:899
-#: avatars.php:1017
-#: avatars.php:1137
+#: avatars.php:911 avatars.php:1029 avatars.php:1149
 msgid "Choose the part of the image you want to use as the avatar."
 msgstr ""
 
-#: avatars.php:924
-msgid "This is your \"blog\" avatar. It will appear whenever your blog is listed (for example, on the front page of the site)."
+#: avatars.php:936
+msgid ""
+"This is your \"blog\" avatar. It will appear whenever your blog is listed "
+"(for example, on the front page of the site)."
 msgstr ""
 
-#: avatars.php:927
-#: avatars.php:1058
-#: avatars.php:1165
+#: avatars.php:939 avatars.php:1070 avatars.php:1177
 msgid "Upload New Avatar"
 msgstr ""
 
-#: avatars.php:932
+#: avatars.php:944
 msgid "Allowed Formats: jpeg, gif, and png"
 msgstr ""
 
-#: avatars.php:933
-#: avatars.php:1064
-msgid "If you are experiencing problems cropping your image please use the alternative upload method (\"Alternative Upload\" button)."
+#: avatars.php:945 avatars.php:1076
+msgid ""
+"If you are experiencing problems cropping your image please use the "
+"alternative upload method (\"Alternative Upload\" button)."
 msgstr ""
 
-#: avatars.php:935
-#: avatars.php:1066
-#: avatars.php:1173
+#: avatars.php:947 avatars.php:1078 avatars.php:1185
 msgid "Upload"
 msgstr ""
 
-#: avatars.php:936
-#: avatars.php:1067
-#: avatars.php:1174
+#: avatars.php:948 avatars.php:1079 avatars.php:1186
 msgid "Alternative Upload"
 msgstr ""
 
-#: avatars.php:937
-#: avatars.php:1068
-#: avatars.php:1175
+#: avatars.php:949 avatars.php:1080 avatars.php:1187
 msgid "Reset"
 msgstr ""
 
-#: avatars.php:1063
-#: avatars.php:1170
+#: avatars.php:1075 avatars.php:1182
 msgid "Allowed Formats:jpeg, gif, and png"
 msgstr ""
 
-#: avatars.php:1162
+#: avatars.php:1174
 msgid "User Avatar"
 msgstr ""
 
-#: avatars.php:1171
-msgid "If you are experiencing problems cropping the image please use the alternative upload method (\"Alternative Upload\" button)."
+#: avatars.php:1183
+msgid ""
+"If you are experiencing problems cropping the image please use the "
+"alternative upload method (\"Alternative Upload\" button)."
 msgstr ""
 
-#: avatars.php:1419
+#: avatars.php:1460
 msgid "Avatars Widget"
 msgstr ""
 
-#: avatars.php:1444
+#: avatars.php:1485
 msgid "Title:"
 msgstr ""
 
-#: avatars.php:1504
-msgid "Please install the latest version of <a href=\"http://premium.wpmudev.org/project/update-notifications/\" title=\"Download Now &raquo;\">our free Update Notifications plugin</a> which helps you stay up-to-date with the most stable, secure versions of WPMU DEV themes and plugins. <a href=\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-information/\">More information &raquo;</a>"
+#: avatars.php:1545
+msgid ""
+"Please install the latest version of <a href=\"http://premium.wpmudev.org/"
+"project/update-notifications/\" title=\"Download Now &raquo;\">our free "
+"Update Notifications plugin</a> which helps you stay up-to-date with the "
+"most stable, secure versions of WPMU DEV themes and plugins. <a href="
+"\"http://premium.wpmudev.org/wpmu-dev/update-notifications-plugin-"
+"information/\">More information &raquo;</a>"
 msgstr ""
-

@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.5.8
+Version: 3.6
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -39,7 +39,7 @@ define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 //---Config---------------------------------------------------------------//
 //------------------------------------------------------------------------//
 $enable_main_blog_avatar = 'yes'; //Options: 'yes' or 'no'
-$avatars_path = 'wp-content/uploads/avatars/';
+$avatars_path = $avatars_upload_dir . 'wp-content/uploads/avatars/';
 $blog_avatars_path = $avatars_path . 'blog/';
 $user_avatars_path = $avatars_path . 'user/';
 $default_blog_avatar = 'identicon'; //'local_default', 'gravatar_default', 'identicon', 'wavatar', 'monsterid'
@@ -64,7 +64,7 @@ class Avatars {
 	/**
 	 * Current version of the plugin
 	 **/
-	var $current_version = '3.5.4';
+	var $current_version = '3.6';
 
 	/**
 	 * PHP4 constructor
@@ -226,9 +226,10 @@ class Avatars {
 	 * Avatars rewrite rules.
 	 **/
 	function rewrite_rules( $wp_rewrite ) {
-	  $new_rules = array(
-		 'avatar/(.+)' => 'index.php?avatar=' . $wp_rewrite->preg_index(1));
-	  $wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
+		$new_rules = array(
+			'avatar/(.+)' => 'index.php?avatar=' . $wp_rewrite->preg_index(1)
+		);
+		$wp_rewrite->rules = $new_rules + $wp_rewrite->rules;
 	}
 
 	/**
@@ -342,6 +343,7 @@ class Avatars {
 	function to_profile( $profileuser ) {
 		global $submenu_file;
 	?>
+		<h3><?php _e('Avatar Settings', 'avatar');?></h3>
 		<table class="form-table">
 			<tbody>
 				<tr>
@@ -1296,10 +1298,23 @@ class Avatars {
 				$file = ABSPATH . $user_avatars_path . substr( md5( $avatar_user_id ), 0, 3 ) . '/user-' . $avatar_user_id . '-' . $size . '.png';
 
 				if ( is_file( $file ) && ! ( isset( $current_screen->id ) && 'options-discussion' == $current_screen->id ) ) { // if file exists and we are not on the discussion options page
+					if (defined('AVATARS_USE_ACTUAL_FILES') && AVATARS_USE_ACTUAL_FILES) {
+						$info = wp_upload_dir();
+						$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($user_avatars_path));
+						$out = preg_replace('/' . preg_quote(ABSPATH . dirname($user_avatars_path) , '/') . '/', $avatars_url, $file);
+					} else {
+						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
+					}
+					$out = isset( $_GET['page'] ) && 'user-avatar' == $_GET['page']
+						? $out . '?rand=' . md5(time())
+						: $out
+					;
+					/*
 					if ( isset( $_GET['page'] ) && 'user-avatar' == $_GET['page'] )
 						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png?rand=' . md5( time() );
 					else
 						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
+					*/
 				}
 			}
 
@@ -1361,11 +1376,24 @@ class Avatars {
 			//user exists locally - check if avatar exists
 			$file = ABSPATH . $blog_avatars_path . substr(md5($id), 0, 3) . '/blog-' . $id . '-' . $size . '.png';
 			if ( is_file( $file ) ) {
+				/*
 				if ( isset( $_GET['page'] ) && ( $_GET['page'] == 'blog-avatar' || $_GET['page'] == 'edit-blog-avatar' ) ) {
 					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png?rand=' . md5(time());
 				} else {
 					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
 				}
+				*/
+				if (defined('AVATARS_USE_ACTUAL_FILES') && AVATARS_USE_ACTUAL_FILES) {
+					$info = wp_upload_dir();
+					$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($blog_avatars_path));
+					$path = preg_replace('/' . preg_quote(ABSPATH . dirname($blog_avatars_path) , '/') . '/', $avatars_url, $file);
+				} else {
+					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $avatar_user_id . '-' . $size . '.png';
+				}
+				$path =isset( $_GET['page'] ) && ( $_GET['page'] == 'blog-avatar' || $_GET['page'] == 'edit-blog-avatar' )
+					? $path . '?rand=' . md5(time())
+					: $path
+				;
 			} else {
 				$path = $default;
 			}
@@ -1381,13 +1409,14 @@ class Avatars {
 	 * Display blog avatar by user ID.
 	 **/
 	function display_posts( $user_ID, $size = '32', $deprecated = '' ) {
-		global $wpdb;
-
+		//global $wpdb;
 		$blog_ID = get_usermeta( $user_ID, 'primary_blog' );
 		if ( !empty( $blog_ID ) ) {
-			$blog = $wpdb->get_var( $wpdb->prepare( "SELECT domain, path FROM {$wpdb->base_prefix}blogs WHERE blog_id = '%s'", $blog_ID ) );
-
-			echo '<a href="http://' . $blog->domain . $blog->path . '" style="text-decoration:none">' .  get_avatar( $user_ID, $size, get_option( 'avatar_default' ) ) . '</a>';
+			// Deprecated:
+			//$blog = $wpdb->get_var( $wpdb->prepare( "SELECT domain, path FROM {$wpdb->base_prefix}blogs WHERE blog_id = '%s'", $blog_ID ) );
+			//echo '<a href="http://' . $blog->domain . $blog->path . '" style="text-decoration:none">' .  get_avatar( $user_ID, $size, get_option( 'avatar_default' ) ) . '</a>';
+			$blog_url = get_site_url($blog_ID);
+			echo '<a href="' . esc_url($blog_url) . '" style="text-decoration:none">' .  get_avatar( $user_ID, $size, get_option( 'avatar_default' ) ) . '</a>';
 		} else {
 			echo get_avatar( $user_ID, $size, get_option( 'avatar_default' ) );
 		}
@@ -1405,9 +1434,11 @@ class Avatars {
 		if ( $user_ID = $this->email_exists( $user_email ) ) {
 			$blog_ID = get_usermeta( $user_ID, 'primary_blog' );
 			if ( !empty( $blog_ID ) ) {
-				$blog = $wpdb->get_var( $wpdb->prepare( "SELECT domain, path FROM {$wpdb->base_prefix}blogs WHERE blog_id = '%s'", $blog_ID ) );
-
-				echo '<a href="http://' . $blog_domain . $blog_path . '" style="text-decoration:none">' . get_avatar( $user_email, $size, get_option('avatar_default') ) . '</a>';
+				// Deprecated:
+				//$blog = $wpdb->get_var( $wpdb->prepare( "SELECT domain, path FROM {$wpdb->base_prefix}blogs WHERE blog_id = '%s'", $blog_ID ) );
+				//echo '<a href="http://' . $blog_domain . $blog_path . '" style="text-decoration:none">' . get_avatar( $user_email, $size, get_option('avatar_default') ) . '</a>';
+				$blog_url = get_site_url($blog_ID);
+				echo '<a href="' . esc_url($blog_url) . '" style="text-decoration:none">' . get_avatar( $user_email, $size, get_option('avatar_default') ) . '</a>';
 			} else {
 				// no primary blog definued
 				echo get_avatar( $user_email, $size, get_option('avatar_default') );

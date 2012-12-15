@@ -5,6 +5,12 @@ Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+3.6 - 12/15/2012
+----------------------------------------------------------------------
+- Added settings section title.
+- Introduced optional avatars url rewriting override.
+- Fix for profile link generation.
+
 3.5.8 - 06/30/2012
 ----------------------------------------------------------------------
 - Fix for loading cropper dependencies in Easy mode.
