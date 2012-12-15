@@ -39,7 +39,7 @@ define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 //---Config---------------------------------------------------------------//
 //------------------------------------------------------------------------//
 $enable_main_blog_avatar = 'yes'; //Options: 'yes' or 'no'
-$avatars_path = $avatars_upload_dir . 'wp-content/uploads/avatars/';
+$avatars_path = 'wp-content/uploads/avatars/';
 $blog_avatars_path = $avatars_path . 'blog/';
 $user_avatars_path = $avatars_path . 'user/';
 $default_blog_avatar = 'identicon'; //'local_default', 'gravatar_default', 'identicon', 'wavatar', 'monsterid'
