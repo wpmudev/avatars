@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.6
+Version: 3.6.1
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -1388,7 +1388,7 @@ class Avatars {
 					$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($blog_avatars_path));
 					$path = preg_replace('/' . preg_quote(ABSPATH . dirname($blog_avatars_path) , '/') . '/', $avatars_url, $file);
 				} else {
-					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $avatar_user_id . '-' . $size . '.png';
+					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
 				}
 				$path =isset( $_GET['page'] ) && ( $_GET['page'] == 'blog-avatar' || $_GET['page'] == 'edit-blog-avatar' )
 					? $path . '?rand=' . md5(time())
