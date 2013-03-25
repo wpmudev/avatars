@@ -371,7 +371,7 @@ class Avatars {
 	function plug_scripts() {
 		// the cropper tool didn't seem to care for the enqueue feature so it's loaded directly.
 		?>
-		<script type='text/javascript' src='<?php echo get_option('siteurl'); ?>/wp-includes/js/crop/cropper.js'></script>
+		<script type='text/javascript' src='<?php echo includes_url(); ?>/js/crop/cropper.js'></script>
 		<script type="text/javascript">
 		
 			function onEndCrop( coords, dimensions ) {
@@ -467,6 +467,11 @@ class Avatars {
 						exit;
 					} elseif ( isset( $_POST['Alternative'] ) ) {
 						// Alternative Upload
+
+						$uploaded_file = $_FILES['avatar_file'];
+						$wp_filetype = wp_check_filetype_and_ext( $uploaded_file['tmp_name'], $uploaded_file['name'], false );
+						if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
+							wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
 
 						$avatar_path = ABSPATH . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/';
 
@@ -744,6 +749,11 @@ class Avatars {
 					} elseif ( isset( $_POST['Alternative'] ) ) {
 						// Alternative Upload
 
+						$uploaded_file = $_FILES['avatar_file'];
+						$wp_filetype = wp_check_filetype_and_ext( $uploaded_file['tmp_name'], $uploaded_file['name'], false );
+						if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
+							wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
+
 						$avatar_path = ABSPATH . $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/';
 
 						if ( !is_dir($avatar_path) ) {
@@ -868,6 +878,12 @@ class Avatars {
 		$action = isset( $_GET[ 'action' ] ) ? $_GET[ 'action' ] : '';
 
 		if( 'upload_process' == $action && ! isset( $_POST['Alternative'] ) ) {
+
+			$uploaded_file = $_FILES['avatar_file'];
+			$wp_filetype = wp_check_filetype_and_ext( $uploaded_file['tmp_name'], $uploaded_file['name'], false );
+			if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
+				wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
+
 			$avatar_path = ABSPATH . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/';
 
 			if (is_dir($avatar_path)) {
@@ -924,7 +940,7 @@ class Avatars {
 			<input type="hidden" name="height" id="height" />
 
 			<p class="submit">
-			<input type="submit" value="<?php _e( 'Crop Image', 'avatars' ); ?>" />
+			<input type="submit" class="button-primary" value="<?php _e( 'Crop Image', 'avatars' ); ?>" />
 			</p>
 
 			</form>
@@ -944,9 +960,9 @@ class Avatars {
 				<p><?php _e( 'Allowed Formats: jpeg, gif, and png', 'avatars' ); ?></p>
 				<p><?php _e( 'If you are experiencing problems cropping your image please use the alternative upload method ("Alternative Upload" button).', 'avatars' ); ?></p>
 				<p class="submit">
-				  <input name="Submit" value="<?php _e( 'Upload', 'avatars' ) ?>" type="submit">
-				  <input name="Alternative" value="<?php _e( 'Alternative Upload', 'avatars' ) ?>" type="submit">
-				  <input name="Reset" value="<?php _e( 'Reset', 'avatars' ) ?>" type="submit">
+				  <input class="button-primary" name="Submit" value="<?php _e( 'Upload', 'avatars' ) ?>" type="submit">
+				  <input class="button" name="Alternative" value="<?php _e( 'Alternative Upload', 'avatars' ) ?>" type="submit">
+				  <input class="button-secondary" name="Reset" value="<?php _e( 'Reset', 'avatars' ) ?>" type="submit">
 				</p>
 			</form>
 			<?php
@@ -1042,7 +1058,7 @@ class Avatars {
 			<input type="hidden" name="height" id="height" />
 
 			<p class="submit">
-			<input type="submit" value="<?php _e( 'Crop Image', 'avatars' ); ?>" />
+			<input class="button-primary" type="submit" value="<?php _e( 'Crop Image', 'avatars' ); ?>" />
 			</p>
 
 			</form>
@@ -1075,9 +1091,9 @@ class Avatars {
 			<p><?php _e( 'Allowed Formats:jpeg, gif, and png', 'avatars' ); ?></p>
 			<p><?php _e( 'If you are experiencing problems cropping your image please use the alternative upload method ("Alternative Upload" button).', 'avatars' ); ?></p>
 			<p class="submit">
-			  <input name="Submit" value="<?php _e( 'Upload', 'avatars' ) ?>" type="submit">
-			  <input name="Alternative" value="<?php _e( 'Alternative Upload', 'avatars' ) ?>" type="submit">
-			  <input name="Reset" value="<?php _e( 'Reset', 'avatars' ) ?>" type="submit">
+			  <input class="button-primary" name="Submit" value="<?php _e( 'Upload', 'avatars' ) ?>" type="submit">
+			  <input class="button" name="Alternative" value="<?php _e( 'Alternative Upload', 'avatars' ) ?>" type="submit">
+			  <input class="button-secondary" name="Reset" value="<?php _e( 'Reset', 'avatars' ) ?>" type="submit">
 			</p>
 			</form>
 			<?php
@@ -1106,6 +1122,12 @@ class Avatars {
 		$action = isset( $_GET['action'] ) ? $_GET['action'] : '';
 
 		if( 'upload_process' == $action && ! isset( $_POST['Alternative'] ) ) {
+
+			$uploaded_file = $_FILES['avatar_file'];
+			$wp_filetype = wp_check_filetype_and_ext( $uploaded_file['tmp_name'], $uploaded_file['name'], false );
+			if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
+				wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
+
 			// Standard Upload
 			$avatar_path = ABSPATH . $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/';
 
@@ -1162,7 +1184,7 @@ class Avatars {
 			<input type="hidden" name="height" id="height" />
 
 			<p class="submit">
-			<input type="submit" value="<?php _e( 'Crop Image', 'avatars' ); ?>" />
+			<input class="button-primary" type="submit" value="<?php _e( 'Crop Image', 'avatars' ); ?>" />
 			</p>
 
 			</form>
@@ -1182,9 +1204,9 @@ class Avatars {
 				<p><?php _e( 'Allowed Formats:jpeg, gif, and png', 'avatars' ); ?></p>
 				<p><?php _e( 'If you are experiencing problems cropping the image please use the alternative upload method ("Alternative Upload" button).', 'avatars' ); ?></p>
 				<p class="submit">
-				  <input name="Submit" value="<?php _e( 'Upload', 'avatars' ) ?>" type="submit">
-				  <input name="Alternative" value="<?php _e( 'Alternative Upload', 'avatars' ) ?>" type="submit">
-				  <input name="Reset" value="<?php _e( 'Reset', 'avatars' ) ?>" type="submit">
+				  <input class="button-primary" name="Submit" value="<?php _e( 'Upload', 'avatars' ) ?>" type="submit">
+				  <input class="button" name="Alternative" value="<?php _e( 'Alternative Upload', 'avatars' ) ?>" type="submit">
+				  <input class="button-secondary" name="Reset" value="<?php _e( 'Reset', 'avatars' ) ?>" type="submit">
 				</p>
 			</form>
 			<?php
@@ -1303,7 +1325,8 @@ class Avatars {
 						$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($user_avatars_path));
 						$out = preg_replace('/' . preg_quote(ABSPATH . dirname($user_avatars_path) , '/') . '/', $avatars_url, $file);
 					} else {
-						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
+						$protocol = ( is_ssl() ) ? 'https://' : 'http://';
+						$out = $protocol . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
 					}
 					$out = isset( $_GET['page'] ) && 'user-avatar' == $_GET['page']
 						? $out . '?rand=' . md5(time())
@@ -1388,7 +1411,8 @@ class Avatars {
 					$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($blog_avatars_path));
 					$path = preg_replace('/' . preg_quote(ABSPATH . dirname($blog_avatars_path) , '/') . '/', $avatars_url, $file);
 				} else {
-					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
+					$protocol = ( is_ssl() ) ? 'https://' : 'http://';
+					$path = $protocol . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
 				}
 				$path =isset( $_GET['page'] ) && ( $_GET['page'] == 'blog-avatar' || $_GET['page'] == 'edit-blog-avatar' )
 					? $path . '?rand=' . md5(time())
