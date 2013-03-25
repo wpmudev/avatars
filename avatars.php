@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.6.1
+Version: 3.7
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -371,33 +371,51 @@ class Avatars {
 	function plug_scripts() {
 		// the cropper tool didn't seem to care for the enqueue feature so it's loaded directly.
 		?>
-		<script type='text/javascript' src='<?php echo includes_url(); ?>/js/crop/cropper.js'></script>
 		<script type="text/javascript">
-		
-			function onEndCrop( coords, dimensions ) {
-				$( 'x1' ).value = coords.x1;
-				$( 'y1' ).value = coords.y1;
-				$( 'x2' ).value = coords.x2;
-				$( 'y2' ).value = coords.y2;
-				$( 'width' ).value = dimensions.width;
-				$( 'height' ).value = dimensions.height;
-			}
+			jQuery(document).ready(function() {
+				var xinit = 10000;
+				var yinit = 10000;
+				var ratio = xinit / yinit;
+				var ximg = jQuery('#upload').width();
+				var yimg = jQuery('#upload').height();
 
-			// with a supplied ratio
-			Event.observe(
-				window,
-				'load',
-				function() {
-					new Cropper.Img(
-						'upload',
-						{
-							ratioDim: { x: 128, y: 128 },
-							displayOnInit: true,
-							onEndCrop: onEndCrop
-						}
-					)
+				if ( yimg < yinit || ximg < xinit ) {
+					if ( ximg / yimg > ratio ) {
+						yinit = yimg;
+						xinit = yinit * ratio;
+					} else {
+						xinit = ximg;
+						yinit = xinit / ratio;
+					}
 				}
-			);
+
+				jQuery('#upload').imgAreaSelect({
+					handles: true,
+					keys: true,
+					show: true,
+					x1: 0,
+					y1: 0,
+					x2: xinit,
+					y2: yinit,
+					aspectRatio: '1:1',
+					onInit: function () {
+						jQuery('#x1').val(0);
+						jQuery('#y1').val(0);
+						jQuery('#x2').val(ximg);
+						jQuery('#y2').val(yimg);
+						jQuery('#width').val(xinit);
+						jQuery('#height').val(yinit);
+					},
+					onSelectChange: function(img, c) {
+						jQuery('#x1').val(c.x1);
+						jQuery('#y1').val(c.y1);
+						jQuery('#x2').val(c.x2);
+						jQuery('#y2').val(c.y2);
+						jQuery('#width').val(c.width);
+						jQuery('#height').val(c.height);
+					}
+				});
+			});
 
 		</script>
 		<?php
@@ -412,6 +430,8 @@ class Avatars {
 		wp_enqueue_script('scriptaculous-builder');
 		wp_enqueue_script('scriptaculous-dragdrop');
 		wp_enqueue_script('prototype');
+		wp_enqueue_script('imgareaselect');
+		wp_enqueue_style('imgareaselect');
 	}
 
 	/**
