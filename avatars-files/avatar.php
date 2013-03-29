@@ -1,5 +1,5 @@
 <?php
-
+$file = basename($file);
 list( $tmp_avatar_type, $tmp_avatar_id, $tmp_avatar_size ) = explode( '-', str_replace( '.png', '', $file ) );
 
 if ( $tmp_avatar_type == 'blog' ) {
