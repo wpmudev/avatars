@@ -373,8 +373,16 @@ class Avatars {
 		?>
 		<script type="text/javascript">
 			jQuery(document).ready(function() {
-				var xinit = 10000;
-				var yinit = 10000;
+
+				function onEndCrop( coords ) {
+					jQuery( '#x1' ).val(coords.x);
+					jQuery( '#y1' ).val(coords.y);
+					jQuery( '#width' ).val(coords.w);
+					jQuery( '#height' ).val(coords.h);
+				}
+
+				var xinit = 128;
+				var yinit = 128;
 				var ratio = xinit / yinit;
 				var ximg = jQuery('#upload').width();
 				var yimg = jQuery('#upload').height();
@@ -399,18 +407,12 @@ class Avatars {
 					y2: yinit,
 					aspectRatio: '1:1',
 					onInit: function () {
-						jQuery('#x1').val(0);
-						jQuery('#y1').val(0);
-						jQuery('#x2').val(ximg);
-						jQuery('#y2').val(yimg);
 						jQuery('#width').val(xinit);
 						jQuery('#height').val(yinit);
 					},
 					onSelectChange: function(img, c) {
 						jQuery('#x1').val(c.x1);
 						jQuery('#y1').val(c.y1);
-						jQuery('#x2').val(c.x2);
-						jQuery('#y2').val(c.y2);
 						jQuery('#width').val(c.width);
 						jQuery('#height').val(c.height);
 					}
@@ -461,6 +463,42 @@ class Avatars {
 			}
 		}
 		return $size;
+	}
+
+	/**
+	 * Crops an image
+	 * 
+	 * @param String $type user or blog
+	 * @param Integer $id ID of the user or blog
+	 * @param String $tmp_file Temporary file
+	 * @param Integer $x1 The start x position to crop from.
+	 * @param Integer $y1 The start y position to crop from.
+	 * @param Integer $width The width to crop.
+	 * @param Integer $height The height to crop.
+	 * @param String $avatar_path Destination path
+	 * 
+	 */
+	function crop_image( $type = 'user', $id, $tmp_file, $x1, $y1, $width, $height, $avatar_path ) {
+
+		if ( ! in_array( $type, array( 'user', 'blog' ) ) )
+			$type = 'user';
+
+		// Avatar possible sizes
+		$sizes = array( 16, 32, 48, 96, 128 );
+		foreach ( $sizes as $avatar_size ) {
+			// Destination filename
+			$dst_file = $avatar_path . "$type-$id-$avatar_size.png";
+
+			@unlink( $dst_file );
+
+			$cropped = wp_crop_image( $tmp_file, $x1, $y1, $width, $height, $avatar_size, $avatar_size, false, $dst_file );
+			if ( ! $cropped || is_wp_error( $cropped ) )
+				wp_die( __( 'Image could not be processed. Please go back and try again.' ), __( 'Image Processing Error' ) );
+		}
+
+		$this->delete_temp( $tmp_file );
+
+		
 	}
 
 	/**
@@ -565,38 +603,11 @@ class Avatars {
 				case 'crop_process':
 					$avatar_path = ABSPATH . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/';
 
-					if (is_dir($avatar_path)) {
-					} else {
-						wp_mkdir_p( $avatar_path );
-					}
+					$filename = stripslashes_deep( $_POST['file_name'] );
+					$tmp_file = $avatar_path . $filename;
 
-					if ($_POST['image_type'] == 'jpeg'){
-						$im = ImageCreateFromjpeg($_POST['file_path'] . $_POST['file_name']);
-					}
-					if ($_POST['image_type'] == 'png'){
-						$im = ImageCreateFrompng($_POST['file_path'] . $_POST['file_name']);
-					}
-					if ($_POST['image_type'] == 'gif'){
-						$im = ImageCreateFromgif($_POST['file_path'] . $_POST['file_name']);
-					}
+					$this->crop_image( 'blog', $wpdb->blogid, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
 
-					if (!$im) {
-						echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-						return false;
-					}
-
-					foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
-						$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
-						$avatar_width = $_POST['x2'] - $_POST['x1'];
-						$avatar_height = $_POST['y2'] - $_POST['y1'];
-						imagecopyresampled( $im_dest, $im, 0, 0, $_POST['x1'], $_POST['y1'], $avatar_size, $avatar_size, $avatar_width, $avatar_height );
-						if ($_POST['image_type'] == 'png'){
-							imagesavealpha( $im_dest, true );
-						}
-						imagepng( $im_dest, $avatar_path . "blog-$wpdb->blogid-$avatar_size.png" );
-					}
-
-					$this->delete_temp( $_POST['file_path'] . $_POST['file_name']);
 					if ( function_exists( 'moderation_image_insert' ) ) {
 						moderation_image_insert('avatar', $wpdb->blogid, $user_ID, $avatar_path . 'blog-' . $wpdb->blogid . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $wpdb->blogid . '-128.png');
 					}
@@ -706,40 +717,15 @@ class Avatars {
 				case 'crop_process':
 					$avatar_path = ABSPATH . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/';
 
-					if (is_dir($avatar_path)) {
-					} else {
-						wp_mkdir_p( $avatar_path );
-					}
+					$filename = stripslashes_deep( $_POST['file_name'] );
+					$tmp_file = $avatar_path . $filename;
 
-					if ($_POST['image_type'] == 'jpeg'){
-						$im = ImageCreateFromjpeg($_POST['file_path'] . $_POST['file_name']);
-					}
-					if ($_POST['image_type'] == 'png'){
-						$im = ImageCreateFrompng($_POST['file_path'] . $_POST['file_name']);
-					}
-					if ($_POST['image_type'] == 'gif'){
-						$im = ImageCreateFromgif($_POST['file_path'] . $_POST['file_name']);
-					}
-
-					if (!$im) {
-						echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-						return false;
-					}
-
-					foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
-						$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
-						$avatar_width = $_POST['x2'] - $_POST['x1'];
-						$avatar_height = $_POST['y2'] - $_POST['y1'];
-						imagecopyresampled( $im_dest, $im, 0, 0, $_POST['x1'], $_POST['y1'], $avatar_size, $avatar_size, $avatar_width, $avatar_height );
-						if( 'png' == $_POST['image_type'] )
-							imagesavealpha( $im_dest, true );
-						imagepng( $im_dest, $avatar_path . "user-$user_ID-$avatar_size.png" );
-					}
-
-					$this->delete_temp( $_POST['file_path'] . $_POST['file_name'] );
+					$this->crop_image( 'user', $user_ID, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
+					
 					if ( function_exists( 'moderation_image_insert' ) ) {
-						moderation_image_insert('avatar', $wpdb->blogid, $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
-					}
+						moderation_image_insert( 'avatar', $wpdb->blogid, $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
+					}					
+					
 					if ( current_user_can('manage_options') ) {
 						wp_redirect( admin_url( 'users.php?page=user-avatar&updated=true&updatedmsg=' . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
 						exit;
@@ -842,37 +828,10 @@ class Avatars {
 				case 'crop_process':
 					$avatar_path = ABSPATH . $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/';
 
-					if( !is_dir($avatar_path) ) {
-						wp_mkdir_p( $avatar_path );
-					}
+					$filename = stripslashes_deep( $_POST['file_name'] );
+					$tmp_file = $avatar_path . $filename;
 
-					if ($_POST['image_type'] == 'jpeg'){
-						$im = ImageCreateFromjpeg($_POST['file_path'] . $_POST['file_name']);
-					}
-					if ($_POST['image_type'] == 'png'){
-						$im = ImageCreateFrompng($_POST['file_path'] . $_POST['file_name']);
-					}
-					if ($_POST['image_type'] == 'gif'){
-						$im = ImageCreateFromgif($_POST['file_path'] . $_POST['file_name']);
-					}
-
-					if (!$im) {
-						echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-						return false;
-					}
-
-					foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
-						$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
-						$avatar_width = $_POST['x2'] - $_POST['x1'];
-						$avatar_height = $_POST['y2'] - $_POST['y1'];
-						imagecopyresampled( $im_dest, $im, 0, 0, $_POST['x1'], $_POST['y1'], $avatar_size, $avatar_size, $avatar_width, $avatar_height );
-						if ($_POST['image_type'] == 'png'){
-							imagesavealpha( $im_dest, true );
-						}
-						imagepng( $im_dest, $avatar_path . "user-$_GET[uid]-$avatar_size.png" );
-					}
-
-					$this->delete_temp( $_POST['file_path'] . $_POST['file_name']);
+					$this->crop_image( 'user', (int)$_GET['uid'], $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
 
 					wp_redirect( admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid={$_GET[uid]}&updated=true&updatedmsg=" . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
 					exit;
@@ -952,10 +911,8 @@ class Avatars {
 			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_path; ?>" />
 			<input type="hidden" name="file_name" id="file_name" value="<?php echo basename( $_FILES['avatar_file']['name'] ); ?>" />
 			<input type="hidden" name="image_type" id="image_type" value="<?php echo $avatar_image_type; ?>" />
-			<input type="hidden" name="x1" id="x1" />
-			<input type="hidden" name="y1" id="y1" />
-			<input type="hidden" name="x2" id="x2" />
-			<input type="hidden" name="y2" id="y2" />
+			<input type="hidden" name="x1" id="x1" value="0"/>
+			<input type="hidden" name="y1" id="y1" value="0"/>
 			<input type="hidden" name="width" id="width" />
 			<input type="hidden" name="height" id="height" />
 
@@ -1070,10 +1027,8 @@ class Avatars {
 			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_path; ?>" />
 			<input type="hidden" name="file_name" id="file_name" value="<?php echo basename( $_FILES['avatar_file']['name']); ?>" />
 			<input type="hidden" name="image_type" id="image_type" value="<?php echo $avatar_image_type; ?>" />
-			<input type="hidden" name="x1" id="x1" />
-			<input type="hidden" name="y1" id="y1" />
-			<input type="hidden" name="x2" id="x2" />
-			<input type="hidden" name="y2" id="y2" />
+			<input type="hidden" name="x1" id="x1" value="0"/>
+			<input type="hidden" name="y1" id="y1" value="0" />
 			<input type="hidden" name="width" id="width" />
 			<input type="hidden" name="height" id="height" />
 
@@ -1196,10 +1151,8 @@ class Avatars {
 			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_path; ?>" />
 			<input type="hidden" name="file_name" id="file_name" value="<?php echo basename( $_FILES['avatar_file']['name']); ?>" />
 			<input type="hidden" name="image_type" id="image_type" value="<?php echo $avatar_image_type; ?>" />
-			<input type="hidden" name="x1" id="x1" />
-			<input type="hidden" name="y1" id="y1" />
-			<input type="hidden" name="x2" id="x2" />
-			<input type="hidden" name="y2" id="y2" />
+			<input type="hidden" name="x1" id="x1" value="0" />
+			<input type="hidden" name="y1" id="y1" value="0" />
 			<input type="hidden" name="width" id="width" />
 			<input type="hidden" name="height" id="height" />
 
