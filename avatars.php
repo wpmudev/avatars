@@ -489,7 +489,7 @@ class Avatars {
 			// Destination filename
 			$dst_file = $avatar_path . "$type-$id-$avatar_size.png";
 
-			@unlink( $dst_file );
+			$this->delete_temp( $dst_file );
 
 			$cropped = wp_crop_image( $tmp_file, $x1, $y1, $width, $height, $avatar_size, $avatar_size, false, $dst_file );
 			if ( ! $cropped || is_wp_error( $cropped ) )
