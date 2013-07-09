@@ -632,13 +632,18 @@ class Avatars {
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-48.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-96.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-128.png');
-						if ( current_user_can('manage_options') ) {
-							wp_redirect( admin_url( 'users.php?page=user-avatar&updated=true&updatedmsg=' . urlencode( __( 'Avatar reset.', 'avatars' ) ) ) );
-							exit;
-						} else {
-							wp_redirect( admin_url( 'profile.php?page=user-avatar&updated=true&updatedmsg=' . urlencode( __( 'Avatar reset.', 'avatars' ) ) ) );
-							exit;
-						}
+
+						$link = add_query_arg(
+							array(
+								'updated' => 'true',
+								'updatedmsg' => urlencode( __( 'Avatar reset.', 'avatars' ) )
+							)
+						);
+						$link = remove_query_arg( 'action' );
+
+						wp_redirect( $link );
+						exit;
+						
 					} elseif ( isset( $_POST['Alternative'] ) ) {
 						$avatar_path = ABSPATH . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/';
 
@@ -704,13 +709,18 @@ class Avatars {
 						if ( function_exists( 'moderation_image_insert' ) ) {
 							moderation_image_insert('avatar', $wpdb->blogid, $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
 						}
-						if ( current_user_can('manage_options') ) {
-							wp_redirect( admin_url( 'users.php?page=user-avatar&updated=true&updatedmsg=' . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
-							exit;
-						} else {
-							wp_redirect( admin_url( 'profile.php?page=user-avatar&updated=true&updatedmsg=' . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
-							exit;
-						}
+
+						$link = add_query_arg(
+							array(
+								'updated' => 'true',
+								'updatedmsg' => urlencode( __( 'Avatar updated', 'avatars' ) )
+							)
+						);
+
+						$link = remove_query_arg( 'action' );
+						
+						wp_redirect( $link );
+						exit;
 					}
 				break;
 
@@ -726,13 +736,17 @@ class Avatars {
 						moderation_image_insert( 'avatar', $wpdb->blogid, $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
 					}					
 					
-					if ( current_user_can('manage_options') ) {
-						wp_redirect( admin_url( 'users.php?page=user-avatar&updated=true&updatedmsg=' . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
-						exit;
-					} else {
-						wp_redirect( admin_url( 'profile.php?page=user-avatar&updated=true&updatedmsg=' . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
-						exit;
-					}
+					$link = add_query_arg(
+						array(
+							'updated' => 'true',
+							'updatedmsg' => urlencode( __( 'Avatar updated', 'avatars' ) )
+						)
+					);
+
+					$link = remove_query_arg( 'action' );
+					
+					wp_redirect( $link );
+					exit;
 				break;
 
 			}
@@ -1008,16 +1022,10 @@ class Avatars {
 			?>
 			<h2><?php _e( 'Crop Image', 'avatars' ) ?></h2>
 			<?php
-			if ( current_user_can('manage_options') ) {
-				?>
-				<form method="post" action="users.php?page=user-avatar&action=crop_process">
-				<?php
-			} else {
-				?>
-				<form method="post" action="profile.php?page=user-avatar&action=crop_process">
-				<?php
-			}
+
+			$link = add_query_arg( 'action','crop_process' );
 			?>
+			<form method="post" action="<?php echo $link; ?>">
 
 			<p><?php _e( 'Choose the part of the image you want to use as the avatar.', 'avatars' ); ?></p>
 			<div id="testWrap">
@@ -1043,16 +1051,10 @@ class Avatars {
 			?>
 			<h2><?php _e( 'Your Avatar', 'avatars' ) ?></h2>
 			<?php
-			if ( current_user_can('manage_options') ) {
-				?>
-				<form action="users.php?page=user-avatar&action=upload_process" method="post" enctype="multipart/form-data">
-				<?php
-			} else {
-				?>
-				<form action="profile.php?page=user-avatar&action=upload_process" method="post" enctype="multipart/form-data">
-				<?php
-			}
+
+			$link = add_query_arg( 'action','upload_process' );
 			?>
+			<form action="<?php echo $link; ?>" method="post" enctype="multipart/form-data">
 			<p>
 			<?php
 			echo get_avatar($user_ID,'96',get_option('avatar_default'));
@@ -1203,11 +1205,13 @@ class Avatars {
 	 * Delete temporary file.
 	 **/
 	function delete_temp( $file ) {
-		chmod( $file, 0777 );
-		if( unlink( $file ) )
-			return true;
-		else
-			return false;
+		if ( file_exists( $file ) ) {
+			chmod( $file, 0777 );
+			if( unlink( $file ) )
+				return true;
+			else
+				return false;
+		}
 	}
 
 	/**
