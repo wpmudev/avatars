@@ -73,7 +73,7 @@ class Avatars {
 	 * PHP4 constructor
 	 **/
 	function Avatars() {
-		__construct();
+		$this->__construct();
 	}
 
 	/**
@@ -98,7 +98,10 @@ class Avatars {
 			$this->network_top_menu_slug = 'ms-admin.php';
 		}
 
+		$main_blog_id = defined( 'BLOG_ID_CURRENT_SITE' ) ? BLOG_ID_CURRENT_SITE : 1;
+		switch_to_blog( $main_blog_id );
 		$upload_dir = wp_upload_dir();
+		restore_current_blog();
 
 		$this->avatars_dir = $upload_dir['basedir'] . '/avatars';
 		$this->avatars_url = $upload_dir['baseurl'] . '/avatars';
@@ -118,6 +121,7 @@ class Avatars {
 		// load plugin functions
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded' ) );
 	}
+
 
 	/**
 	 * Admin error notices.
@@ -143,7 +147,7 @@ class Avatars {
 
 				// temporarily stores existing filesystem object
 				if( isset( $wp_filesystem ) )
-					$orig_filesystem = wp_clone( $wp_filesystem );
+					$orig_filesystem = clone( $wp_filesystem );
 
 				$wp_filesystem = new WP_Filesystem_Direct( false );
 
@@ -179,7 +183,7 @@ class Avatars {
 
 				// restore original filesystem object
 				if( isset( $orig_filesystem ) )
-					$wp_filesystem = wp_clone( $orig_filesystem );
+					$wp_filesystem = clone( $orig_filesystem );
 
 				echo "<div class='error'><p>$message</p></div>";
 			}
@@ -292,7 +296,8 @@ class Avatars {
 	 * Add admin pages.
 	 **/
 	function plug_pages() {
-		global $wpdb;
+		global $wpdb, $wp_version;
+
 		if ( $wpdb->blogid == '1' )
 			add_submenu_page('options-general.php', __( 'Blog Avatar', 'avatars' ), __( 'Blog Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
 		else
@@ -595,7 +600,7 @@ class Avatars {
 	 * Process avatar upload.
 	 **/
 	function process() {
-		global $plugin_page;
+		global $plugin_page, $current_site;
 
 		$user_ID = get_current_user_id();
 		$action = isset( $_GET[ 'action' ] ) ? $_GET[ 'action' ] : '';
@@ -631,7 +636,7 @@ class Avatars {
 							wp_mkdir_p( $avatar_path );
 
 						$image_path = $avatar_path . basename( $_FILES['avatar_file']['name'] );
-						
+
 						$this->upload_image( $_FILES['avatar_file'], $avatar_path, $image_path, $blog_id, 'blog' );
 
 						if ( function_exists( 'moderation_image_insert' ) ) {
@@ -1281,6 +1286,7 @@ class Avatars {
 			//user exists locally - check if avatar exists
 
 			$file = $this->blog_avatar_dir . self::encode_avatar_folder( $id ) . '/blog-' . $id . '-' . $size . '.png';
+
 			if ( is_file( $file ) ) {
 				if (defined('AVATARS_USE_ACTUAL_FILES') && AVATARS_USE_ACTUAL_FILES) {
 					$info = wp_upload_dir();
@@ -1309,7 +1315,7 @@ class Avatars {
 	 * Display blog avatar by user ID.
 	 **/
 	function display_posts( $user_ID, $size = '32', $deprecated = '' ) {
-		$blog_ID = get_usermeta( $user_ID, 'primary_blog' );
+		$blog_ID = get_user_meta( $user_ID, 'primary_blog', true );
 		if ( !empty( $blog_ID ) ) {
 			$blog_url = get_site_url($blog_ID);
 			echo '<a href="' . esc_url($blog_url) . '" style="text-decoration:none">' .  get_avatar( $user_ID, $size, get_option( 'avatar_default' ) ) . '</a>';
@@ -1327,7 +1333,7 @@ class Avatars {
 			return false;
 
 		if ( $user_ID = $this->email_exists( $user_email ) ) {
-			$blog_ID = get_usermeta( $user_ID, 'primary_blog' );
+			$blog_ID = get_user_meta( $user_ID, 'primary_blog', true );
 			if ( !empty( $blog_ID ) ) {
 				$blog_url = get_site_url($blog_ID);
 				echo '<a href="' . esc_url($blog_url) . '" style="text-decoration:none">' . get_avatar( $user_email, $size, get_option('avatar_default') ) . '</a>';
