@@ -35,16 +35,6 @@ define( 'AVATARS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'AVATARS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) . 'avatars-files/' );
 define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 
-//------------------------------------------------------------------------//
-//---Config---------------------------------------------------------------//
-//------------------------------------------------------------------------//
-$enable_main_blog_avatar = 'yes'; //Options: 'yes' or 'no'
-$avatars_path = 'wp-content/uploads/avatars/';
-$blog_avatars_path = $avatars_path . 'blog/';
-$user_avatars_path = $avatars_path . 'user/';
-$default_blog_avatar = 'identicon'; //'local_default', 'gravatar_default', 'identicon', 'wavatar', 'monsterid'
-$local_default_avatar_url = AVATARS_PLUGIN_URL . 'images/default-avatar-';
-$local_default_avatar_path = AVATARS_PLUGIN_URL . 'images/default-avatar-';
 
 /**
  * Plugin main class
@@ -66,6 +56,19 @@ class Avatars {
 	 **/
 	var $current_version = '3.6';
 
+	private $avatars_dir;
+	private $user_avatar_dir;
+	private $blog_avatar_dir;
+
+	private $avatars_url;
+	private $user_avatar_url;
+	private $blog_avatar_url;
+
+	private $default_blog_avatar = 'identicon';
+
+	private $local_default_avatar_url;
+	private $local_default_avatar_dir;
+
 	/**
 	 * PHP4 constructor
 	 **/
@@ -78,6 +81,7 @@ class Avatars {
 	 **/
 	function __construct() {
 		global $wp_version;
+
 		// load text domain
 		if ( defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/avatars.php' ) ) {
 			load_muplugin_textdomain( 'avatars', 'avatars-files/languages' );
@@ -93,6 +97,20 @@ class Avatars {
 			$this->network_top_menu = 'ms-admin.php';
 			$this->network_top_menu_slug = 'ms-admin.php';
 		}
+
+		$upload_dir = wp_upload_dir();
+
+		$this->avatars_dir = $upload_dir['basedir'] . '/avatars';
+		$this->avatars_url = $upload_dir['baseurl'] . '/avatars';
+
+		$this->user_avatar_dir = $this->avatars_dir . '/user/';
+		$this->blog_avatar_dir = $this->avatars_dir . '/blog/';
+
+		$this->user_avatar_url = $this->avatars_url . '/user/';
+		$this->blog_avatar_url = $this->avatars_url . '/blog/';
+
+		$this->local_default_avatar_url = AVATARS_PLUGIN_URL . 'images/default-avatar-';
+		$this->local_default_avatar_path = AVATARS_PLUGIN_DIR . 'images/default-avatar-';
 
 		// display admin notices
 		add_action( 'admin_notices', array( &$this, 'admin_errors' ) );
@@ -110,15 +128,16 @@ class Avatars {
 		// check if BuddyPress is installed
 		if( defined( 'BP_VERSION' ) ) {
 
-			$message = sprintf( __( 'BuddyPress has it\'s own avatar system. The Avatars plugin functions have been deactivated. Please remove the files.', 'avatars' ), ABSPATH . $avatars_path );
+			$message = sprintf( __( 'BuddyPress has it\'s own avatar system. The Avatars plugin functions have been deactivated. Please remove the files.', 'avatars' ), $this->avatars_dir );
 			echo "<div class='error'><p>$message</p></div>";
 
 		} else {
 
-			global $avatars_path, $wp_filesystem;
+			global $wp_filesystem;
 
 			// check if old directory exists
-			if ( is_dir( ABSPATH . 'wp-content/avatars/' ) && !is_dir( ABSPATH . $avatars_path ) ) {
+			if ( is_dir( WP_CONTENT_DIR . '/avatars' ) && ! is_dir( $this->avatars_dir ) ) {
+
 				require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
 				require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
 
@@ -134,24 +153,24 @@ class Avatars {
 				if ( ! defined('FS_CHMOD_FILE') )
 					define('FS_CHMOD_FILE', 0644 );
 
-				if ( $wp_filesystem->mkdir( ABSPATH . $avatars_path, FS_CHMOD_DIR ) ) { // create new avatars directory
+				if ( $wp_filesystem->mkdir( $this->avatars_dir, FS_CHMOD_DIR ) ) { // create new avatars directory
 
-					if( copy_dir( ABSPATH . 'wp-content/avatars/', ABSPATH . $avatars_path ) ) { // copy files to new directory
+					if( copy_dir( WP_CONTENT_DIR . '/avatars', $this->avatars_dir ) ) { // copy files to new directory
 
-						if( $wp_filesystem->delete( ABSPATH . 'wp-content/avatars/', true ) ) // attempt delete of old folder
-							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatars' ), ABSPATH . $avatars_path );
+						if( $wp_filesystem->delete( WP_CONTENT_DIR . '/avatars', true ) ) // attempt delete of old folder
+							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been moved.', 'avatars' ), $this->avatars_dir );
 						else
-							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been copied. Please verify that everything is working fine and delete the old folder manually.', 'avatars' ), ABSPATH . $avatars_path );
+							$message = sprintf( __( 'The Avatars plugin now store files in %s. Your old folder has been copied. Please verify that everything is working fine and delete the old folder manually.', 'avatars' ), $this->avatars_dir );
 
 					} else { // unsuccessful copy, warns user
 
-							$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure that directory is writable by the server.', 'avatars' ), ABSPATH . $avatars_path );
+							$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure that directory is writable by the server.', 'avatars' ), $this->avatars_dir );
 
 					}
 
 				} else {
 
-					$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure its parent directory is writable by the server.', 'avatars' ), ABSPATH . $avatars_path );
+					$message = sprintf( __( 'The Avatars plugin now store files in %s. Please make sure its parent directory is writable by the server.', 'avatars' ), $this->avatars_dir );
 
 				}
 
@@ -166,8 +185,8 @@ class Avatars {
 			}
 
 			// check if plugin directory exists
-			if ( ! wp_mkdir_p( ABSPATH . $avatars_path ) ) {
-				$message = sprintf( __( 'The Avatars plugin was unable to create directory %s. Is its parent directory writable by the server?', 'avatars' ), ABSPATH . $avatars_path );
+			if ( ! wp_mkdir_p( $this->avatars_dir ) ) {
+				$message = sprintf( __( 'The Avatars plugin was unable to create directory %s. Is its parent directory writable by the server?', 'avatars' ), $this->avatars_dir );
 				echo "<div class='error'><p>$message</p></div>";
 			}
 
@@ -191,9 +210,10 @@ class Avatars {
 
 			// url rewriting
 			add_action( 'init', array( &$this, 'flush_rules' ) );
+			add_action( 'generate_rewrite_rules', array( &$this, 'rewrite_rules' ) );
 			add_filter( 'query_vars', array( &$this, 'query_var' ) );
 			add_action( 'template_redirect', array( &$this, 'load_avatar' ), -1 );
-			add_action( 'generate_rewrite_rules', array( &$this, 'rewrite_rules' ) );
+			
 
 			// settings pages
 			add_action( 'network_admin_menu', array( &$this, 'network_admin_page' ) );
@@ -257,7 +277,11 @@ class Avatars {
 	 **/
 	function load_avatar() {
 		if( $file = get_query_var('avatar') ) {
-			global $blog_avatars_path, $user_avatars_path, $default_blog_avatar, $local_default_avatar_path;
+			$blog_avatars_path = $this->blog_avatar_dir;
+			$user_avatars_path = $this->user_avatar_dir;
+			$default_blog_avatar = $this->default_blog_avatar;
+			$local_default_avatar_path = $this->local_default_avatar_path;
+
 			$default_user_avatar = get_option( 'default_avatar' );
 			require_once( AVATARS_PLUGIN_DIR . 'avatar.php' );
 			exit;
@@ -268,19 +292,17 @@ class Avatars {
 	 * Add admin pages.
 	 **/
 	function plug_pages() {
-		global $wpdb, $enable_main_blog_avatar;
-		if ( $wpdb->blogid == '1' ) {
-			if ( strtolower( $enable_main_blog_avatar ) == 'yes' ) {
-				add_submenu_page('options-general.php', __( 'Blog Avatar', 'avatars' ), __( 'Blog Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
-			}
-		} else {
+		global $wpdb;
+		if ( $wpdb->blogid == '1' )
 			add_submenu_page('options-general.php', __( 'Blog Avatar', 'avatars' ), __( 'Blog Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
-		}
-		if ( current_user_can('edit_users') ) {
+		else
+			add_submenu_page('options-general.php', __( 'Blog Avatar', 'avatars' ), __( 'Blog Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
+		
+		if ( current_user_can('edit_users') )
 			add_submenu_page('users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'manage_options', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
-		} else {
+		else
 			add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
-		}
+		
 
 		if ( is_super_admin() && isset( $_GET['page'] ) && $_GET['page'] == 'edit-user-avatar' ) {
 			add_action( 'admin_page_edit', 'page_site_admin_edit_user_avatar' );
@@ -290,7 +312,7 @@ class Avatars {
 	}
 	
 	function user_plug_pages() {
-		add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'exist', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
+		add_submenu_page( 'profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'exist', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
 	}
 
 	/**
@@ -492,6 +514,7 @@ class Avatars {
 			$this->delete_temp( $dst_file );
 
 			$cropped = wp_crop_image( $tmp_file, $x1, $y1, $width, $height, $avatar_size, $avatar_size, false, $dst_file );
+
 			if ( ! $cropped || is_wp_error( $cropped ) )
 				wp_die( __( 'Image could not be processed. Please go back and try again.' ), __( 'Image Processing Error' ) );
 		}
@@ -501,98 +524,118 @@ class Avatars {
 		
 	}
 
+	public static function encode_avatar_folder( $id ) {
+		return substr( md5( $id ), 0, 3 );
+	}
+
+	private function get_avatar_sizes() {
+		return array( 16, 32, 48, 96, 128 );
+	}
+
+	private function upload_image( $file, $avatar_path, $image_path, $avatar_id, $av_type ) {
+
+		$type = $file['type'];
+		$file_name = $file['name'];
+		$tmp_name = $file['tmp_name'];
+
+		if( move_uploaded_file( $tmp_name, $image_path ) )
+			chmod( $image_path, 0777 );
+		else
+			_e( 'There was an error uploading the file, please try again.', 'avatars' );
+
+		list( $avatar_width, $avatar_height, $avatar_type, $avatar_attr ) = getimagesize( $image_path );
+
+		if ( $type == "image/gif"){
+			$avatar_image_type = 'gif';
+		}
+		if ( $type == "image/jpeg"){
+			$avatar_image_type = 'jpeg';
+		}
+		if ( $type == "image/pjpeg"){
+			$avatar_image_type = 'jpeg';
+		}
+		if ( $type == "image/jpg"){
+			$avatar_image_type = 'jpeg';
+		}
+		if ( $type == "image/png"){
+			$avatar_image_type = 'png';
+		}
+		if ( $type == "image/x-png"){
+			$avatar_image_type = 'png';
+		}
+
+		if ($avatar_image_type == 'jpeg')
+			$im = ImageCreateFromjpeg( $avatar_path . basename( $file_name ) );
+
+		if ($avatar_image_type == 'png')
+			$im = ImageCreateFrompng( $avatar_path . basename( $file_name ) );
+
+		if ($avatar_image_type == 'gif')
+			$im = ImageCreateFromgif( $avatar_path . basename( $file_name ) );
+
+		if (!$im) {
+			echo __( 'There was an error uploading the file, please try again.', 'avatars' );
+			return false;
+		}
+
+		$sizes = $this->get_avatar_sizes();
+
+		foreach( $sizes as $avatar_size ) {
+			$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
+			imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
+			if( 'png' == $avatar_image_type )
+				imagesavealpha( $im_dest, true );
+			imagepng( $im_dest, $avatar_path . "$av_type-$avatar_id-$avatar_size.png" );
+		}
+
+		$this->delete_temp( $avatar_path . basename( $file_name ) );
+	}
+
 	/**
 	 * Process avatar upload.
 	 **/
 	function process() {
-		global $plugin_page, $wpdb, $user_ID, $blog_avatars_path, $user_avatars_path;
+		global $plugin_page;
 
+		$user_ID = get_current_user_id();
 		$action = isset( $_GET[ 'action' ] ) ? $_GET[ 'action' ] : '';
 
 		// blog avatar processing
 		if( 'blog-avatar' == $plugin_page ) {
+			$blog_id = get_current_blog_id();
+			$avatar_path = $this->blog_avatar_dir . self::encode_avatar_folder( $blog_id ) . '/';
 			switch( $action ) {
 				case 'upload_process':
 					if ( isset( $_POST['Reset'] ) ) {
-						$avatar_path = ABSPATH . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/';
-						$this->delete_temp( $avatar_path . 'blog-' . $wpdb->blogid . '-16.png');
-						$this->delete_temp( $avatar_path . 'blog-' . $wpdb->blogid . '-32.png');
-						$this->delete_temp( $avatar_path . 'blog-' . $wpdb->blogid . '-48.png');
-						$this->delete_temp( $avatar_path . 'blog-' . $wpdb->blogid . '-96.png');
-						$this->delete_temp( $avatar_path . 'blog-' . $wpdb->blogid . '-128.png');
+
+						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-16.png');
+						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-32.png');
+						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-48.png');
+						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-96.png');
+						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-128.png');
 
 						wp_redirect( admin_url( 'options-general.php?page=blog-avatar&updated=true' ) );
 						exit;
+
 					} elseif ( isset( $_POST['Alternative'] ) ) {
 						// Alternative Upload
 
 						$uploaded_file = $_FILES['avatar_file'];
 						$wp_filetype = wp_check_filetype_and_ext( $uploaded_file['tmp_name'], $uploaded_file['name'], false );
+
 						if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
 							wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
 
-						$avatar_path = ABSPATH . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/';
 
-						if (is_dir($avatar_path)) {
-						} else {
+						if ( ! is_dir( $avatar_path ) )
 							wp_mkdir_p( $avatar_path );
-						}
 
-						$image_path = $avatar_path . basename($_FILES['avatar_file']['name']);
+						$image_path = $avatar_path . basename( $_FILES['avatar_file']['name'] );
+						
+						$this->upload_image( $_FILES['avatar_file'], $avatar_path, $image_path, $blog_id, 'blog' );
 
-						if(move_uploaded_file($_FILES['avatar_file']['tmp_name'], $image_path)) {
-							//file uploaded...
-							chmod($image_path, 0777);
-						} else{
-							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-						}
-						list($avatar_width, $avatar_height, $avatar_type, $avatar_attr) = getimagesize($image_path);
-
-						if ($_FILES['avatar_file']['type'] == "image/gif"){
-							$avatar_image_type = 'gif';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/jpeg"){
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/pjpeg"){
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/jpg"){
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/png"){
-							$avatar_image_type = 'png';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/x-png"){
-							$avatar_image_type = 'png';
-						}
-
-						if ($avatar_image_type == 'jpeg'){
-							$im = ImageCreateFromjpeg($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-						if ($avatar_image_type == 'png'){
-							$im = ImageCreateFrompng($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-						if ($avatar_image_type == 'gif'){
-							$im = ImageCreateFromgif($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-
-						if (!$im) {
-							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-							return false;
-						}
-
-						foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
-							$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
-							imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
-							if( 'png' == $avatar_image_type )
-								imagesavealpha( $im_dest, true );
-							imagepng( $im_dest, $avatar_path . "blog-$wpdb->blogid-$avatar_size.png" );
-						}
-
-						$this->delete_temp( $avatar_path . basename( $_FILES['avatar_file']['name']));
 						if ( function_exists( 'moderation_image_insert' ) ) {
-							moderation_image_insert('avatar', $wpdb->blogid, $user_ID, $avatar_path . 'blog-' . $wpdb->blogid . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $wpdb->blogid . '-128.png');
+							moderation_image_insert('avatar', $blog_id, $user_ID, $avatar_path . 'blog-' . $blog_id . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $blog_id . '-128.png');
 						}
 
 						wp_redirect( admin_url( 'options-general.php?page=blog-avatar&updated=true' ) );
@@ -601,15 +644,15 @@ class Avatars {
 				break;
 
 				case 'crop_process':
-					$avatar_path = ABSPATH . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/';
+					$avatar_path = $this->blog_avatar_dir . self::encode_avatar_folder( $blog_id ) . '/';
 
 					$filename = stripslashes_deep( $_POST['file_name'] );
 					$tmp_file = $avatar_path . $filename;
 
-					$this->crop_image( 'blog', $wpdb->blogid, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
+					$this->crop_image( 'blog', $blog_id, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
 
 					if ( function_exists( 'moderation_image_insert' ) ) {
-						moderation_image_insert('avatar', $wpdb->blogid, $user_ID, $avatar_path . 'blog-' . $wpdb->blogid . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $wpdb->blogid . '-128.png');
+						moderation_image_insert('avatar', $blog_id, $user_ID, $avatar_path . 'blog-' . $blog_id . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $blog_id . '-128.png');
 					}
 
 					wp_redirect( admin_url( 'options-general.php?page=blog-avatar&updated=true' ) );
@@ -621,95 +664,82 @@ class Avatars {
 			}
 		}
 
-		if( 'user-avatar' == $plugin_page ) {
-			switch( $action ) {
+		if( 'user-avatar' == $plugin_page || 'edit-user-avatar' == $plugin_page ) {
 
+			
+			$user_ID = 'edit-user-avatar' == $plugin_page ? $_GET['uid'] : get_current_user_id();
+			$avatar_path = $this->user_avatar_dir . self::encode_avatar_folder( $user_ID ) . '/';
+
+			switch( $action ) {
 				case 'upload_process':
 					if ( isset( $_POST['Reset'] ) ) {
-						$avatar_path = ABSPATH . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/';
+						
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-16.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-32.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-48.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-96.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-128.png');
 
-						$link = add_query_arg(
-							array(
-								'updated' => 'true',
-								'updatedmsg' => urlencode( __( 'Avatar reset.', 'avatars' ) )
-							)
-						);
-						$link = remove_query_arg( 'action' );
+						if ( 'user-avatar' == $plugin_page ) {
+							$link = add_query_arg(
+								array(
+									'updated' => 'true',
+									'updatedmsg' => urlencode( __( 'Avatar reset.', 'avatars' ) )
+								)
+							);
+							$link = remove_query_arg( 'action' );
+						}
+						else {
+							$link = admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid={$user_ID}&updated=true&updatedmsg=" . urlencode( __( 'Avatar reset.', 'avatars' ) ) );
+						}
 
 						wp_redirect( $link );
 						exit;
 						
 					} elseif ( isset( $_POST['Alternative'] ) ) {
-						$avatar_path = ABSPATH . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/';
 
-						if ( is_dir( $avatar_path ) ) {
-						} else {
+						if ( ! is_dir( $avatar_path ) )
 							wp_mkdir_p( $avatar_path );
-						}
 
 						$image_path = $avatar_path . basename($_FILES['avatar_file']['name']);
 
-						if( move_uploaded_file( $_FILES['avatar_file']['tmp_name'], $image_path ) ) {
-							//file uploaded...
-							chmod( $image_path, 0777 );
-						} else{
-							echo __( "There was an error uploading the file, please try again.", 'avatars' );
-						}
-						list($avatar_width, $avatar_height, $avatar_type, $avatar_attr) = getimagesize($image_path);
+						$this->upload_image( $_FILES['avatar_file'], $avatar_path, $image_path, $user_ID, 'user' );
 
-						if ($_FILES['avatar_file']['type'] == "image/gif") {
-							$avatar_image_type = 'gif';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/jpeg") {
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/pjpeg") {
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/jpg") {
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/png") {
-							$avatar_image_type = 'png';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/x-png") {
-							$avatar_image_type = 'png';
+						if ( function_exists( 'moderation_image_insert' ) && 'user-avatar' == $plugin_page ) {
+							moderation_image_insert('avatar', get_current_blog_id(), $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
 						}
 
-						//Alternative Upload
-						if ($avatar_image_type == 'jpeg'){
-							$im = ImageCreateFromjpeg($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-						if ($avatar_image_type == 'png'){
-							$im = ImageCreateFrompng($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-						if ($avatar_image_type == 'gif'){
-							$im = ImageCreateFromgif($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
+						if ( 'user-avatar' == $plugin_page ) {
+							$link = add_query_arg(
+								array(
+									'updated' => 'true',
+									'updatedmsg' => urlencode( __( 'Avatar updated', 'avatars' ) )
+								)
+							);
 
-						if (!$im) {
-							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-							return false;
+							$link = remove_query_arg( 'action' );
 						}
-
-						foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
-							$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
-							imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
-							if( 'png' == $avatar_image_type )
-								imagesavealpha( $im_dest, true );
-							imagepng( $im_dest, $avatar_path . "user-$user_ID-$avatar_size.png" );
+						else {
+							$link = admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid={$user_ID}&updated=true&updatedmsg=" . urlencode( __( 'Avatar updated.', 'avatars' ) ) );
 						}
+						
+						wp_redirect( $link );
+						exit;
+					}
+				break;
 
-						$this->delete_temp( $avatar_path . basename( $_FILES['avatar_file']['name']));
-						if ( function_exists( 'moderation_image_insert' ) ) {
-							moderation_image_insert('avatar', $wpdb->blogid, $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
-						}
+				case 'crop_process':
 
+					$filename = stripslashes_deep( $_POST['file_name'] );
+					$tmp_file = $avatar_path . $filename;
+
+					$this->crop_image( 'user', $user_ID, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
+					
+					if ( function_exists( 'moderation_image_insert' ) && 'user-avatar' == $plugin_page ) {
+						moderation_image_insert( 'avatar', get_current_blog_id(), $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
+					}		
+					
+					if ( 'user-avatar' == $plugin_page ) {
 						$link = add_query_arg(
 							array(
 								'updated' => 'true',
@@ -718,32 +748,10 @@ class Avatars {
 						);
 
 						$link = remove_query_arg( 'action' );
-						
-						wp_redirect( $link );
-						exit;
 					}
-				break;
-
-				case 'crop_process':
-					$avatar_path = ABSPATH . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/';
-
-					$filename = stripslashes_deep( $_POST['file_name'] );
-					$tmp_file = $avatar_path . $filename;
-
-					$this->crop_image( 'user', $user_ID, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
-					
-					if ( function_exists( 'moderation_image_insert' ) ) {
-						moderation_image_insert( 'avatar', $wpdb->blogid, $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
-					}					
-					
-					$link = add_query_arg(
-						array(
-							'updated' => 'true',
-							'updatedmsg' => urlencode( __( 'Avatar updated', 'avatars' ) )
-						)
-					);
-
-					$link = remove_query_arg( 'action' );
+					else {
+						$link = admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid={$user_ID}&updated=true&updatedmsg=" . urlencode( __( 'Avatar updated.', 'avatars' ) ) );
+					}
 					
 					wp_redirect( $link );
 					exit;
@@ -751,117 +759,14 @@ class Avatars {
 
 			}
 		}
-
-		if( 'edit-user-avatar' == $plugin_page ) {
-			switch( $action ) {
-
-				case 'upload_process':
-					if ( isset( $_POST['Reset'] ) ) {
-						$avatar_path = ABSPATH . $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/';
-						$this->delete_temp( $avatar_path . 'user-' . $_GET['uid'] . '-16.png');
-						$this->delete_temp( $avatar_path . 'user-' . $_GET['uid'] . '-32.png');
-						$this->delete_temp( $avatar_path . 'user-' . $_GET['uid'] . '-48.png');
-						$this->delete_temp( $avatar_path . 'user-' . $_GET['uid'] . '-96.png');
-						$this->delete_temp( $avatar_path . 'user-' . $_GET['uid'] . '-128.png');
-						wp_redirect( admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid={$_GET[uid]}&updated=true&updatedmsg=" . urlencode( __( 'Avatar reset.', 'avatars' ) ) ) );
-						exit;
-
-					} elseif ( isset( $_POST['Alternative'] ) ) {
-						// Alternative Upload
-
-						$uploaded_file = $_FILES['avatar_file'];
-						$wp_filetype = wp_check_filetype_and_ext( $uploaded_file['tmp_name'], $uploaded_file['name'], false );
-						if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
-							wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
-
-						$avatar_path = ABSPATH . $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/';
-
-						if ( !is_dir($avatar_path) ) {
-							wp_mkdir_p( $avatar_path );
-						}
-
-						$image_path = $avatar_path . basename($_FILES['avatar_file']['name']);
-
-						if(move_uploaded_file($_FILES['avatar_file']['tmp_name'], $image_path)) {
-							//file uploaded...
-							chmod($image_path, 0777);
-						} else{
-							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-						}
-						list($avatar_width, $avatar_height, $avatar_type, $avatar_attr) = getimagesize($image_path);
-
-						if ($_FILES['avatar_file']['type'] == "image/gif"){
-							$avatar_image_type = 'gif';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/jpeg"){
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/pjpeg"){
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/jpg"){
-							$avatar_image_type = 'jpeg';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/png"){
-							$avatar_image_type = 'png';
-						}
-						if ($_FILES['avatar_file']['type'] == "image/x-png"){
-							$avatar_image_type = 'png';
-						}
-
-						if ($avatar_image_type == 'jpeg'){
-							$im = ImageCreateFromjpeg($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-						if ($avatar_image_type == 'png'){
-							$im = ImageCreateFrompng($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-						if ($avatar_image_type == 'gif'){
-							$im = ImageCreateFromgif($avatar_path . basename( $_FILES['avatar_file']['name']));
-						}
-
-						if (!$im) {
-							echo __( 'There was an error uploading the file, please try again.', 'avatars' );
-							return false;
-						}
-
-						foreach( array( 16, 32, 48, 96, 128 ) as $avatar_size ) {
-							$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
-							imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
-							if( 'png' == $avatar_image_type )
-								imagesavealpha( $im_dest, true );
-							imagepng( $im_dest, $avatar_path . "user-$_GET[uid]-$avatar_size.png" );
-						}
-
-						$this->delete_temp( $avatar_path . basename( $_FILES['avatar_file']['name']));
-
-						wp_redirect( admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid={$_GET[uid]}&updated=true&updatedmsg=" . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
-						exit;
-					}
-				break;
-				//---------------------------------------------------//
-				case 'crop_process':
-					$avatar_path = ABSPATH . $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/';
-
-					$filename = stripslashes_deep( $_POST['file_name'] );
-					$tmp_file = $avatar_path . $filename;
-
-					$this->crop_image( 'user', (int)$_GET['uid'], $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
-
-					wp_redirect( admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid={$_GET[uid]}&updated=true&updatedmsg=" . urlencode( __( 'Avatar updated.', 'avatars' ) ) ) );
-					exit;
-				break;
-
-			}
-		}
-
 	}
 
 	/**
 	 * Return content for Edit Blog Avatar page.
 	 **/
 	function page_edit_blog_avatar() {
-		global $wpdb, $blog_avatars_path;
 
+		$blog_id = get_current_blog_id();
 		if( !current_user_can('manage_options') ) {
 			echo '<p>' . __( 'Nice Try...', 'avatars' ) . '</p>';  //If accessed properly, this message doesn't appear.
 			return;
@@ -877,7 +782,7 @@ class Avatars {
 			if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
 				wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
 
-			$avatar_path = ABSPATH . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/';
+			$avatar_path = $this->blog_avatar_dir . substr(md5($blog_id), 0, 3) . '/';
 
 			if (is_dir($avatar_path)) {
 			} else {
@@ -919,7 +824,7 @@ class Avatars {
 
 			<p><?php _e( 'Choose the part of the image you want to use as the avatar.', 'avatars' ); ?></p>
 			<div id="testWrap">
-			<img src="<?php echo '../' . $blog_avatars_path . substr(md5($wpdb->blogid), 0, 3) . '/' . $_FILES['avatar_file']['name']; ?>" id="upload" width="<?php echo $avatar_width; ?>" height="<?php echo $avatar_height; ?>" />
+			<img src="<?php echo $this->blog_avatar_url . self::encode_avatar_folder( $blog_id ) . '/' . $_FILES['avatar_file']['name']; ?>" id="upload" width="<?php echo $avatar_width; ?>" height="<?php echo $avatar_height; ?>" />
 			</div>
 
 			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_path; ?>" />
@@ -941,7 +846,7 @@ class Avatars {
 			<h2><?php _e( 'Blog Avatar', 'avatars' ) ?></h2>
 			<form action="options-general.php?page=blog-avatar&action=upload_process" method="post" enctype="multipart/form-data">
 				<p><?php _e( 'This is your "blog" avatar. It will appear whenever your blog is listed (for example, on the front page of the site).', 'avatars' ); ?></p>
-				<p><?php echo get_blog_avatar( $wpdb->blogid, '96', '' ); ?></p>
+				<p><?php echo get_blog_avatar( $blog_id, '96', '' ); ?></p>
 
 				<h3><?php _e( 'Upload New Avatar', 'avatars' ); ?></h3>
 				<p>
@@ -965,8 +870,9 @@ class Avatars {
 	 * Return content for Edit User Avatar page.
 	 **/
 	function page_edit_user_avatar() {
-		global $wpdb, $user_avatars_path, $user_ID, $current_site;
+		global $current_site;
 
+		$user_ID = get_current_user_id();
 		if (isset($_GET['updated'])) {
 			?>
 			<div style="background-color: rgb(255, 251, 204);" id="message" class="updated fade">
@@ -983,16 +889,14 @@ class Avatars {
 
 		if( 'upload_process' == $action && ! isset( $_POST['Alternative'] ) ) {
 
-			$avatar_path = ABSPATH . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/';
+			$avatar_dir = $this->user_avatar_dir . self::encode_avatar_folder( $user_ID ) . '/';
 
-			if ( ! is_dir( $avatar_path ) ) {
-				wp_mkdir_p( $avatar_path );
-			}
+			if ( ! is_dir( $avatar_dir ) )
+				wp_mkdir_p( $avatar_dir );
 
-			$image_path = $avatar_path . basename($_FILES['avatar_file']['name']);
-
+			$image_path = $avatar_dir . basename($_FILES['avatar_file']['name']);
+			
 			if( move_uploaded_file( $_FILES['avatar_file']['tmp_name'], $image_path ) ) {
-				//file uploaded...
 				chmod( $image_path, 0777 );
 			} else{
 				echo __( "There was an error uploading the file, please try again.", 'avatars' );
@@ -1029,10 +933,10 @@ class Avatars {
 
 			<p><?php _e( 'Choose the part of the image you want to use as the avatar.', 'avatars' ); ?></p>
 			<div id="testWrap">
-			<img src="<?php echo '../' . $user_avatars_path . substr(md5($user_ID), 0, 3) . '/' . $_FILES['avatar_file']['name']; ?>" id="upload" width="<?php echo $avatar_width; ?>" height="<?php echo $avatar_height; ?>" />
+			<img src="<?php echo $this->user_avatar_url . self::encode_avatar_folder( $user_ID ) . '/' . $_FILES['avatar_file']['name']; ?>" id="upload" width="<?php echo $avatar_width; ?>" height="<?php echo $avatar_height; ?>" />
 			</div>
 
-			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_path; ?>" />
+			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_dir; ?>" />
 			<input type="hidden" name="file_name" id="file_name" value="<?php echo basename( $_FILES['avatar_file']['name']); ?>" />
 			<input type="hidden" name="image_type" id="image_type" value="<?php echo $avatar_image_type; ?>" />
 			<input type="hidden" name="x1" id="x1" value="0"/>
@@ -1057,7 +961,7 @@ class Avatars {
 			<form action="<?php echo $link; ?>" method="post" enctype="multipart/form-data">
 			<p>
 			<?php
-			echo get_avatar($user_ID,'96',get_option('avatar_default'));
+			echo get_avatar( $user_ID, '96', get_option('avatar_default') );
 			?>
 			</p>
 			<h3><?php _e( 'Upload New Avatar', 'avatars' ); ?></h3
@@ -1082,7 +986,6 @@ class Avatars {
 	 * Return content for Edit User Avatar page for super admin.
 	 **/
 	function page_site_admin_edit_user_avatar() {
-		global $wpdb, $user_avatars_path;
 
 		if (isset($_GET['updated'])) {
 			?>
@@ -1102,17 +1005,18 @@ class Avatars {
 
 			$uploaded_file = $_FILES['avatar_file'];
 			$wp_filetype = wp_check_filetype_and_ext( $uploaded_file['tmp_name'], $uploaded_file['name'], false );
+
 			if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) )
 				wp_die( '<div class="error"><p>' . __( 'The uploaded file is not a valid image. Please try again.' ) . '</p></div>' );
 
 			// Standard Upload
-			$avatar_path = ABSPATH . $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/';
+			$avatar_dir = $this->user_avatar_dir . Avatars::encode_avatar_folder( $_GET['uid'] ) . '/';
 
-			if ( !is_dir($avatar_path) ) {
-				wp_mkdir_p( $avatar_path );
+			if ( !is_dir($avatar_dir) ) {
+				wp_mkdir_p( $avatar_dir );
 			}
 
-			$image_path = $avatar_path . basename($_FILES['avatar_file']['name']);
+			$image_path = $avatar_dir . basename($_FILES['avatar_file']['name']);
 
 			if(move_uploaded_file($_FILES['avatar_file']['tmp_name'], $image_path)) {
 				//file uploaded...
@@ -1147,10 +1051,10 @@ class Avatars {
 
 			<p><?php _e( 'Choose the part of the image you want to use as the avatar.', 'avatars' ); ?></p>
 			<div id="testWrap">
-			<img src="<?php echo site_url( $user_avatars_path . substr(md5($_GET['uid']), 0, 3) . '/' . $_FILES['avatar_file']['name'] ); ?>" id="upload" width="<?php echo $avatar_width; ?>" height="<?php echo $avatar_height; ?>" />
+			<img src="<?php echo $this->user_avatar_url . Avatars::encode_avatar_folder( $_GET['uid'] ) . '/' . $_FILES['avatar_file']['name']; ?>" id="upload" width="<?php echo $avatar_width; ?>" height="<?php echo $avatar_height; ?>" />
 			</div>
 
-			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_path; ?>" />
+			<input type="hidden" name="file_path" id="file_path" value="<?php echo $avatar_dir; ?>" />
 			<input type="hidden" name="file_name" id="file_name" value="<?php echo basename( $_FILES['avatar_file']['name']); ?>" />
 			<input type="hidden" name="image_type" id="image_type" value="<?php echo $avatar_image_type; ?>" />
 			<input type="hidden" name="x1" id="x1" value="0" />
@@ -1218,7 +1122,7 @@ class Avatars {
 	 * Return user avatar.
 	 **/
 	function get_avatar( $id_or_email, $size = '96', $default = '', $alt = false ) {
-		global $current_site, $current_screen, $user_avatars_path, $local_default_avatar_url;
+		global $current_site, $current_screen;
 
 		if ( ! get_option('show_avatars') )
 			return false;
@@ -1278,7 +1182,7 @@ class Avatars {
 		}
 
 		if( 'local_default' == $default )
-			$default = $local_default_avatar_url . $size . '.png';
+			$default = $this->local_default_avatar_url . $size . '.png';
 		elseif( 'mystery' == $default )
 			$default = "$host/avatar/ad516503a11cd5ca435acc9bb6523536?s={$size}"; // ad516503a11cd5ca435acc9bb6523536 == md5('unknown@gravatar.com')
 		elseif( 'blank' == $default )
@@ -1294,13 +1198,13 @@ class Avatars {
 
 		if ( !empty($email) ) {
 			if ( $avatar_user_id = $this->email_exists( $email ) ) { // email exists locally - check if file exists
-				$file = ABSPATH . $user_avatars_path . substr( md5( $avatar_user_id ), 0, 3 ) . '/user-' . $avatar_user_id . '-' . $size . '.png';
+				$file = $this->user_avatar_dir . Avatars::encode_avatar_folder( $avatar_user_id ) . '/user-' . $avatar_user_id . '-' . $size . '.png';
 
 				if ( is_file( $file ) && ! ( isset( $current_screen->id ) && 'options-discussion' == $current_screen->id ) ) { // if file exists and we are not on the discussion options page
 					if (defined('AVATARS_USE_ACTUAL_FILES') && AVATARS_USE_ACTUAL_FILES) {
 						$info = wp_upload_dir();
-						$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($user_avatars_path));
-						$out = preg_replace('/' . preg_quote(ABSPATH . dirname($user_avatars_path) , '/') . '/', $avatars_url, $file);
+						$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($this->user_avatar_dir));
+						$out = preg_replace('/' . preg_quote(dirname($this->user_avatar_dir) , '/') . '/', $avatars_url, $file);
 					} else {
 						$protocol = ( is_ssl() ) ? 'https://' : 'http://';
 						$out = $protocol . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
@@ -1341,7 +1245,7 @@ class Avatars {
 	 * Return blog avatar.
 	 **/
 	function get_blog_avatar( $id, $size = '96', $default = '', $alt = '' ) {
-		global $current_site, $blog_avatars_path, $default_blog_avatar, $local_default_avatar_url;
+		global $current_site;
 
 		if ( false === $alt )
 			$safe_alt = '';
@@ -1352,41 +1256,36 @@ class Avatars {
 			$size = '96';
 		}
 		$size = $this->size_map( $size );
+
 		if ( empty( $default ) ) {
 			$default = get_option('avatar_default');
 			if ( empty( $default ) ) {
-				$default = $default_blog_avatar;
+				$default = $this->default_blog_avatar;
 			}
 		}
-		if ( $default == 'local_default' ) {
-			$default = $local_default_avatar_url . $size . '.png';
-		} else if ( $default == 'gravatar_default' ) {
+
+		if ( $default == 'local_default' )
+			$default = $this->local_default_avatar_url . $size . '.png';
+		else if ( $default == 'gravatar_default' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&s=' . $size;
-		} else if ( $default == 'identicon' ) {
+		else if ( $default == 'identicon' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=identicon&s=' . $size;
-		} else if ( $default == 'wavatar' ) {
+		else if ( $default == 'wavatar' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=wavatar&s=' . $size;
-		} else if ( $default == 'monsterid' ) {
+		else if ( $default == 'monsterid' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=monsterid&s=' . $size;
-		} else {
-			$default = $local_default_avatar_url . $size . '.png';;
-		}
+		else
+			$default = $this->local_default_avatar_url . $size . '.png';
 
 		if ( !empty($id) ) {
 			//user exists locally - check if avatar exists
-			$file = ABSPATH . $blog_avatars_path . substr(md5($id), 0, 3) . '/blog-' . $id . '-' . $size . '.png';
+
+			$file = $this->blog_avatar_dir . self::encode_avatar_folder( $id ) . '/blog-' . $id . '-' . $size . '.png';
 			if ( is_file( $file ) ) {
-				/*
-				if ( isset( $_GET['page'] ) && ( $_GET['page'] == 'blog-avatar' || $_GET['page'] == 'edit-blog-avatar' ) ) {
-					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png?rand=' . md5(time());
-				} else {
-					$path = 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
-				}
-				*/
 				if (defined('AVATARS_USE_ACTUAL_FILES') && AVATARS_USE_ACTUAL_FILES) {
 					$info = wp_upload_dir();
-					$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($blog_avatars_path));
-					$path = preg_replace('/' . preg_quote(ABSPATH . dirname($blog_avatars_path) , '/') . '/', $avatars_url, $file);
+					$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($this->blog_avatar_dir));
+					$path = preg_replace('/' . preg_quote(ABSPATH . dirname($this->blog_avatar_dir) , '/') . '/', $avatars_url, $file);
 				} else {
 					$protocol = ( is_ssl() ) ? 'https://' : 'http://';
 					$path = $protocol . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
@@ -1410,12 +1309,8 @@ class Avatars {
 	 * Display blog avatar by user ID.
 	 **/
 	function display_posts( $user_ID, $size = '32', $deprecated = '' ) {
-		//global $wpdb;
 		$blog_ID = get_usermeta( $user_ID, 'primary_blog' );
 		if ( !empty( $blog_ID ) ) {
-			// Deprecated:
-			//$blog = $wpdb->get_var( $wpdb->prepare( "SELECT domain, path FROM {$wpdb->base_prefix}blogs WHERE blog_id = '%s'", $blog_ID ) );
-			//echo '<a href="http://' . $blog->domain . $blog->path . '" style="text-decoration:none">' .  get_avatar( $user_ID, $size, get_option( 'avatar_default' ) ) . '</a>';
 			$blog_url = get_site_url($blog_ID);
 			echo '<a href="' . esc_url($blog_url) . '" style="text-decoration:none">' .  get_avatar( $user_ID, $size, get_option( 'avatar_default' ) ) . '</a>';
 		} else {
@@ -1427,7 +1322,6 @@ class Avatars {
 	 * Display blog avatar by user email.
 	 **/
 	function display_comments( $user_email, $size = '32', $deprecated = '' ) {
-		global $wpdb;
 
 		if ( !get_option('show_avatars') )
 			return false;
@@ -1435,9 +1329,6 @@ class Avatars {
 		if ( $user_ID = $this->email_exists( $user_email ) ) {
 			$blog_ID = get_usermeta( $user_ID, 'primary_blog' );
 			if ( !empty( $blog_ID ) ) {
-				// Deprecated:
-				//$blog = $wpdb->get_var( $wpdb->prepare( "SELECT domain, path FROM {$wpdb->base_prefix}blogs WHERE blog_id = '%s'", $blog_ID ) );
-				//echo '<a href="http://' . $blog_domain . $blog_path . '" style="text-decoration:none">' . get_avatar( $user_email, $size, get_option('avatar_default') ) . '</a>';
 				$blog_url = get_site_url($blog_ID);
 				echo '<a href="' . esc_url($blog_url) . '" style="text-decoration:none">' . get_avatar( $user_email, $size, get_option('avatar_default') ) . '</a>';
 			} else {
@@ -1462,7 +1353,6 @@ class WA_Widget_Avatars extends WP_Widget {
 	}
 
 	function widget( $args, $instance ) {
-		global $wpdb;
 		extract( $args );
 
 		$title = apply_filters('widget_title', isset( $instance['title'] ) ? $instance['title'] : '');
@@ -1470,7 +1360,7 @@ class WA_Widget_Avatars extends WP_Widget {
 		echo $before_widget;
 		if ( $title )
 			echo $before_title . $title . $after_title;
-		echo get_blog_avatar( $wpdb->blogid, '128', '' );
+		echo get_blog_avatar( get_current_blog_id(), '128', '' );
 		echo $after_widget;
 	}
 
