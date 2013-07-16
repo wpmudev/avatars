@@ -5,6 +5,14 @@ Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+3.8 - 2013/07/16
+----------------------------------------------------------------------
+- Removed globals variables
+- Removed deprecated functions
+- Changed directory system.
+- Plugin ready to get avatars when upload folder is not the default one.
+- Fixing bug when redirecting pages when a user is not attached to any site 
+
 3.7.1 - 2013/04/17
 ----------------------------------------------------------------------
 - Fixed bug when cropping images
