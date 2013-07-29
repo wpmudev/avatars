@@ -546,7 +546,7 @@ class Avatars {
 		return substr( md5( $id ), 0, 3 );
 	}
 
-	private function get_avatar_sizes() {
+	public function get_avatar_sizes() {
 		return array( 16, 32, 48, 96, 128 );
 	}
 

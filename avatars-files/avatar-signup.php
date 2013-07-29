@@ -13,11 +13,14 @@ class Avatars_Signup {
 		// Signup: WordPress       
 		add_action( 'wp_enqueue_scripts', array( &$this, 'enqueue_front_scripts' ) );
         add_action( 'signup_extra_fields', array( $this, 'render_signup_extra_fields' ) );
+        add_action( 'signup_blogform', array( $this, 'registration_render_signup_site_extra_fields' ) );
 
         add_action( 'wp_ajax_nopriv_avatars_upload_signup_avatar', array( &$this, 'upload_user_signup_avatar' ) );
         add_filter( 'add_signup_meta', array( $this, 'add_signup_meta' ) );
 
         add_action( 'wpmu_activate_user', array( &$this, 'save_user_avatar' ), 10, 3 );
+
+
 	}
 
 	public function upload_user_signup_avatar() {
@@ -50,16 +53,30 @@ class Avatars_Signup {
 	}
 
 	public function render_signup_extra_fields() {
+		$user_avatar = ! empty( $_REQUEST['user-avatar-file'] ) ? $_REQUEST['user-avatar-file'] : '';
 		?>
 			<label for="user-avatar"><?php _e( 'Your Avatar', 'avatars' ); ?></label>
 			<div id="user-avatar-container">
 			<?php
-				echo get_avatar( 0, '96', get_option('avatar_default') );
+				if ( ! empty( $user_avatar ) ) {
+					?><img alt="" src="<?php echo $user_avatar; ?>" class="avatar avatar-96 photo avatar-default" height="96" width="96"><?php
+				}
+				else {
+					echo get_avatar( 0, '96', get_option('avatar_default') );
+				}
+
 			?>
 			</div><br/>
-			<input type="hidden" id="user-avatar-filename" name="user-avatar-file" value="">
+			<input type="hidden" id="user-avatar-filename" name="user-avatar-file" value="<?php echo $user_avatar; ?>">
 			<input type="file" name="user_avatar" id="user-avatar"><br/><br/>
 			
+		<?php
+	}
+
+	public function registration_render_signup_site_extra_fields() {
+		$user_avatar = ! empty( $_REQUEST['user-avatar-file'] ) ? $_REQUEST['user-avatar-file'] : '';
+		?>
+			<input type="hidden" id="user-avatar-filename" name="user-avatar-file" value="<?php echo $user_avatar; ?>">
 		<?php
 	}
 
@@ -131,20 +148,26 @@ class Avatars_Signup {
     }
 
     function save_user_avatar( $user_id, $pass, $meta ) {
-    	if ( ! empty( $meta['user-avatar'] ) ) {
+    	if ( ! empty( $meta['user_avatar'] ) ) {
     		$source_dir = $this->ms_avatars->get_avatar_dir();
     		$image_dir = $source_dir . '/user/' . Avatars::encode_avatar_folder( $user_id );
 
-    		$this->upload_image( $source_dir, $image_dir, $meta['user-avatar'] );
+    		$this->upload_image( $source_dir, $image_dir, $meta['user_avatar'], 'user', $user_id );
     	}
     }
 
-    private function upload_image( $source_dir, $destination_dir, $filename, $type ) {
+    private function upload_image( $source_dir, $destination_dir, $filename, $av_type, $avatar_id ) {
+
+
     	$image_path = $destination_dir . '/' . $filename;
+    	if ( ! is_dir( $destination_dir ) )
+    		wp_mkdir_p( $destination_dir );
 
 		$ext = pathinfo( $filename, PATHINFO_EXTENSION );
 
-    	if( move_uploaded_file( $source_dir, $image_path ) )
+		$result = rename( $source_dir . '/' . $filename, $image_path );
+
+    	if( $result )
 			chmod( $image_path, 0777 );
 		else
 			return false;
@@ -194,10 +217,10 @@ class Avatars_Signup {
 			imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
 			if( 'png' == $avatar_image_type )
 				imagesavealpha( $im_dest, true );
-			imagepng( $im_dest, $avatar_path . "$av_type-$avatar_id-$avatar_size.png" );
+			imagepng( $im_dest, $destination_dir . "/$av_type-$avatar_id-$avatar_size.png" );
 		}
 
-		$this->ms_avatars->delete_temp( $source_dir . '/' . basename( $file_name ) );
+		$this->ms_avatars->delete_temp( $image_path );
 
     }
 
