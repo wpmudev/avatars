@@ -36,7 +36,6 @@ define( 'AVATARS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) . 'avatars-files/' );
 define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 
 
-
 /**
  * Plugin main class
  **/
@@ -75,14 +74,6 @@ class Avatars {
 	 **/
 	function Avatars() {
 		$this->__construct();
-	}
-
-	public function get_avatar_url() {
-		return $this->avatars_url;
-	}
-
-	public function get_avatar_dir() {
-		return $this->avatars_dir;
 	}
 
 	/**
@@ -129,11 +120,7 @@ class Avatars {
 
 		// load plugin functions
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded' ) );
-
-		
 	}
-
-	
 
 
 	/**
@@ -546,7 +533,7 @@ class Avatars {
 		return substr( md5( $id ), 0, 3 );
 	}
 
-	public function get_avatar_sizes() {
+	private function get_avatar_sizes() {
 		return array( 16, 32, 48, 96, 128 );
 	}
 
@@ -1361,8 +1348,7 @@ class Avatars {
 	}
 
 }
-$ms_avatar = new Avatars();
-require_once( AVATARS_PLUGIN_DIR . 'avatar-signup.php' );
+$ms_avatar =& new Avatars();
 
 /**
  * WidgetAvatar Class
