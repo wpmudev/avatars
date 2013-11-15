@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: Andrew Billits, Ulrich Sossou (Incsub)
 Author URI: http://premium.wpmudev.org/
-Version: 3.8
+Version: 3.8.1
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -69,6 +69,8 @@ class Avatars {
 	private $local_default_avatar_url;
 	private $local_default_avatar_dir;
 
+	private $nginx;
+
 	/**
 	 * PHP4 constructor
 	 **/
@@ -101,8 +103,12 @@ class Avatars {
 		$main_blog_id = defined( 'BLOG_ID_CURRENT_SITE' ) ? BLOG_ID_CURRENT_SITE : 1;
 		switch_to_blog( $main_blog_id );
 		$upload_dir = wp_upload_dir();
+		$site_url = get_site_url( $main_blog_id, 'index.php' );
 		restore_current_blog();
 
+		$this->nginx = defined( 'AVATARS_USE_NGINX' ) && AVATARS_USE_NGINX == true;
+
+		
 		$this->avatars_dir = $upload_dir['basedir'] . '/avatars';
 		$this->avatars_url = $upload_dir['baseurl'] . '/avatars';
 
@@ -285,7 +291,6 @@ class Avatars {
 			$user_avatars_path = $this->user_avatar_dir;
 			$default_blog_avatar = $this->default_blog_avatar;
 			$local_default_avatar_path = $this->local_default_avatar_path;
-
 			$default_user_avatar = get_option( 'default_avatar' );
 			require_once( AVATARS_PLUGIN_DIR . 'avatar.php' );
 			exit;
@@ -1212,12 +1217,17 @@ class Avatars {
 						$out = preg_replace('/' . preg_quote(dirname($this->user_avatar_dir) , '/') . '/', $avatars_url, $file);
 					} else {
 						$protocol = ( is_ssl() ) ? 'https://' : 'http://';
-						$out = $protocol . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
+						if ( ! $this->nginx ) {
+							$out = $protocol . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
+						}
+						else {
+							$out = $protocol . $current_site->domain . $current_site->path;
+							$out = add_query_arg( 'avatar', 'user-' . $avatar_user_id . '-' . $size . '.png', $out );
+						}
 					}
-					$out = isset( $_GET['page'] ) && 'user-avatar' == $_GET['page']
-						? $out . '?rand=' . md5(time())
-						: $out
-					;
+
+					if ( isset( $_GET['page'] ) && 'user-avatar' == $_GET['page'] )
+						$out = add_query_arg( 'rand', md5(time()), $out );					
 					/*
 					if ( isset( $_GET['page'] ) && 'user-avatar' == $_GET['page'] )
 						$out = 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png?rand=' . md5( time() );
@@ -1294,12 +1304,17 @@ class Avatars {
 					$path = preg_replace('/' . preg_quote(ABSPATH . dirname($this->blog_avatar_dir) , '/') . '/', $avatars_url, $file);
 				} else {
 					$protocol = ( is_ssl() ) ? 'https://' : 'http://';
-					$path = $protocol . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
+					if ( ! $this->nginx ) {
+						$path = $protocol . $current_site->domain . $current_site->path . 'avatar/blog-' . $id . '-' . $size . '.png';
+					}
+					else {
+						$path = $protocol . $current_site->domain . $current_site->path;
+						$path = add_query_arg( 'avatar', 'blog-' . $id . '-' . $size . '.png', $path );
+					}
 				}
-				$path =isset( $_GET['page'] ) && ( $_GET['page'] == 'blog-avatar' || $_GET['page'] == 'edit-blog-avatar' )
-					? $path . '?rand=' . md5(time())
-					: $path
-				;
+				if ( isset( $_GET['page'] ) && 'blog-avatar' == $_GET['page']  || $_GET['page'] == 'edit-blog-avatar' )
+					$path = add_query_arg( 'rand', md5(time()), $path );	
+
 			} else {
 				$path = $default;
 			}
@@ -1348,7 +1363,7 @@ class Avatars {
 	}
 
 }
-$ms_avatar =& new Avatars();
+$ms_avatar = new Avatars();
 
 /**
  * WidgetAvatar Class
