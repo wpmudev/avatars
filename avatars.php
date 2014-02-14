@@ -108,6 +108,11 @@ class Avatars {
 
 		$this->nginx = defined( 'AVATARS_USE_NGINX' ) && AVATARS_USE_NGINX == true;
 
+		if ( preg_match('/blogs.dir.*$/', $upload_dir['basedir'] ) )
+			$upload_dir['basedir'] = preg_replace( '/blogs.dir.*$/', 'uploads', $upload_dir['basedir'] );
+
+		if ( preg_match('/blogs.dir.*$/', $upload_dir['baseurl'] ) )
+			$upload_dir['baseurl'] = preg_replace( '/blogs.dir.*$/', 'uploads', $upload_dir['baseurl'] );
 		
 		$this->avatars_dir = $upload_dir['basedir'] . '/avatars';
 		$this->avatars_url = $upload_dir['baseurl'] . '/avatars';
