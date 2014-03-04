@@ -36,6 +36,9 @@ define( 'AVATARS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) . 'avatars-files/' );
 define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 
 
+require_once( AVATARS_PLUGIN_DIR . 'helpers.php' );
+require_once( 'wpmudev-debugger.php' );
+
 /**
  * Plugin main class
  **/
@@ -76,6 +79,14 @@ class Avatars {
 	 **/
 	function Avatars() {
 		$this->__construct();
+	}
+
+	public function get_avatar_url() {
+		return $this->avatars_url;
+	}
+
+	public function get_avatar_dir() {
+		return $this->avatars_dir;
 	}
 
 	/**
@@ -131,6 +142,9 @@ class Avatars {
 
 		// load plugin functions
 		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded' ) );
+
+
+		add_action( 'widgets_init', array( $this, 'widget_init' ) );
 	}
 
 
@@ -149,6 +163,7 @@ class Avatars {
 		} else {
 
 			global $wp_filesystem;
+
 
 			// check if old directory exists
 			if ( is_dir( WP_CONTENT_DIR . '/avatars' ) && ! is_dir( $this->avatars_dir ) ) {
@@ -213,6 +228,14 @@ class Avatars {
 	 **/
 	function plugins_loaded() {
 		if( !defined( 'BP_VERSION' ) ) {
+
+			require_once( AVATARS_PLUGIN_DIR . 'front/widget.php' );
+			
+
+			require_once( AVATARS_PLUGIN_DIR . 'front/avatar-signup.php' );
+			new Avatars_Signup();	
+			
+
 			// add local avatar to the defaults list
 			add_filter( 'avatar_defaults', array( &$this, 'defaults' ) );
 
@@ -247,6 +270,10 @@ class Avatars {
 				}
 			}
 		}
+	}
+
+	public function widget_init() {
+		return register_widget( 'WA_Widget_Avatars' );
 	}
 
 	/**
@@ -385,16 +412,16 @@ class Avatars {
 			<tbody>
 				<tr>
 					<th><label for="avatar">Avatar</label></th>
-					<td><span class="description"><?php _e( 'This is your "user" avatar. It will appear whenever you leave comments, post in the forums and when your popular posts are displayed around the site.', 'avatars' ); ?><br>
-					<?php echo get_avatar( $profileuser->ID ); ?><br>
+					<td><p><?php _e( 'This is your "user" avatar. It will appear whenever you leave comments, post in the forums and when your popular posts are displayed around the site.', 'avatars' ); ?></p>
+					<p><?php echo get_avatar( $profileuser->ID ); ?><br></p>
 					<?php
 					if( IS_PROFILE_PAGE )
 						if ( is_user_admin() )
-							echo '<a href="' . admin_url( "user/$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
+							echo '<a class="button" href="' . admin_url( "user/$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
 						else
-							echo '<a href="' . admin_url( "$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
+							echo '<a class="button" href="' . admin_url( "$submenu_file?page=user-avatar" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
 					else
-						echo '<a href="' . admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid=$profileuser->ID" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
+						echo '<a class="button" href="' . admin_url( "$this->network_top_menu_slug?page=edit-user-avatar&uid=$profileuser->ID" ) . '">' . __( 'Change Avatar', 'avatars' ) . '</a></td>';
 					?>
 				</tr>
 			</tbody>
@@ -543,7 +570,7 @@ class Avatars {
 		return substr( md5( $id ), 0, 3 );
 	}
 
-	private function get_avatar_sizes() {
+	public function get_avatar_sizes() {
 		return array( 16, 32, 48, 96, 128 );
 	}
 
@@ -553,10 +580,13 @@ class Avatars {
 		$file_name = $file['name'];
 		$tmp_name = $file['tmp_name'];
 
-		if( move_uploaded_file( $tmp_name, $image_path ) )
+		if( move_uploaded_file( $tmp_name, $image_path ) ) {
 			chmod( $image_path, 0777 );
-		else
+		}
+		else {
 			_e( 'There was an error uploading the file, please try again.', 'avatars' );
+			wp_die();
+		}
 
 		list( $avatar_width, $avatar_height, $avatar_type, $avatar_attr ) = getimagesize( $image_path );
 
@@ -688,7 +718,7 @@ class Avatars {
 			switch( $action ) {
 				case 'upload_process':
 					if ( isset( $_POST['Reset'] ) ) {
-						
+
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-16.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-32.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-48.png');
@@ -915,6 +945,7 @@ class Avatars {
 				chmod( $image_path, 0777 );
 			} else{
 				echo __( "There was an error uploading the file, please try again.", 'avatars' );
+				wp_die();
 			}
 			list($avatar_width, $avatar_height, $avatar_type, $avatar_attr) = getimagesize($image_path);
 
@@ -1038,6 +1069,7 @@ class Avatars {
 				chmod($image_path, 0777);
 			} else{
 				echo __( "There was an error uploading the file, please try again.", 'avatars' );
+				wp_die();
 			}
 			list($avatar_width, $avatar_height, $avatar_type, $avatar_attr) = getimagesize($image_path);
 
@@ -1370,84 +1402,6 @@ class Avatars {
 }
 $ms_avatar = new Avatars();
 
-/**
- * WidgetAvatar Class
- */
-class WA_Widget_Avatars extends WP_Widget {
-	function WA_Widget_Avatars() {
-		parent::WP_Widget( false, __( 'Avatars Widget', 'avatars' ) );
-	}
-
-	function widget( $args, $instance ) {
-		extract( $args );
-
-		$title = apply_filters('widget_title', isset( $instance['title'] ) ? $instance['title'] : '');
-
-		echo $before_widget;
-		if ( $title )
-			echo $before_title . $title . $after_title;
-		echo get_blog_avatar( get_current_blog_id(), '128', '' );
-		echo $after_widget;
-	}
-
-	function update( $new_instance, $old_instance ) {
-		$instance = $old_instance;
-		$instance['title'] = isset( $new_instance['title'] ) ? strip_tags( $new_instance['title'] ) : '';
-		return $instance;
-	}
-
-	function form( $instance ) {
-		$title = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
-		?>
-			<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e( 'Title:', 'avatars' ); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label></p>
-		<?php
-	}
-
-} // class WA_Widget_Avatars
-
-/**
- * Register widget.
- **/
-function widget_avatars_init() {
-	return register_widget( 'WA_Widget_Avatars' );
-}
-add_action( 'widgets_init', 'widget_avatars_init' );
-
-/**
- * Return user avatar.
- **/
-if( !function_exists( 'get_avatar' ) ):
-function get_avatar( $id_or_email, $size = '96', $default = '', $alt = false ) {
-	global $ms_avatar;
-	return $ms_avatar->get_avatar( $id_or_email, $size, $default, $alt );
-}
-endif;
-
-/**
- * Return blog avatar.
- **/
-if( !function_exists( 'get_blog_avatar' ) ):
-function get_blog_avatar( $id, $size = '96', $default = '', $alt = false ) {
-	global $ms_avatar;
-	return $ms_avatar->get_blog_avatar( $id, $size, $default, $alt );
-}
-endif;
-
-/**
- * Display blog avatar by user ID.
- **/
-function avatar_display_posts( $user_ID, $size = '32', $deprecated = '' ) {
-	global $ms_avatar;
-	return $ms_avatar->display_posts( $user_ID, $size, $deprecated );
-}
-
-/**
- * Display blog avatar by user email.
- **/
-function avatar_display_comments( $user_email, $size = '32', $deprecated = '' ) {
-	global $ms_avatar;
-	return $ms_avatar->display_comments( $user_email, $size, $deprecated );
-}
 
 
 /**
