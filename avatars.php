@@ -336,9 +336,9 @@ class Avatars {
 		global $wpdb, $wp_version;
 
 		if ( $wpdb->blogid == '1' )
-			add_submenu_page('options-general.php', __( 'Blog Avatar', 'avatars' ), __( 'Blog Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
+			add_submenu_page('options-general.php', __( 'Site Avatar', 'avatars' ), __( 'Site Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
 		else
-			add_submenu_page('options-general.php', __( 'Blog Avatar', 'avatars' ), __( 'Blog Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
+			add_submenu_page('options-general.php', __( 'Site Avatar', 'avatars' ), __( 'Site Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
 		
 		if ( current_user_can('edit_users') )
 			add_submenu_page('users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'manage_options', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
@@ -888,9 +888,9 @@ class Avatars {
 			<?php
 		} else {
 			?>
-			<h2><?php _e( 'Blog Avatar', 'avatars' ) ?></h2>
+			<h2><?php _e( 'Site Avatar', 'avatars' ) ?></h2>
 			<form action="options-general.php?page=blog-avatar&action=upload_process" method="post" enctype="multipart/form-data">
-				<p><?php _e( 'This is your "blog" avatar. It will appear whenever your blog is listed (for example, on the front page of the site).', 'avatars' ); ?></p>
+				<p><?php _e( 'This is your "site" avatar. It will appear whenever your blog is listed (for example, on the front page of the site).', 'avatars' ); ?></p>
 				<p><?php echo get_blog_avatar( $blog_id, '96', '' ); ?></p>
 
 				<h3><?php _e( 'Upload New Avatar', 'avatars' ); ?></h3>
