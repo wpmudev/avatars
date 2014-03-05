@@ -19,6 +19,7 @@ class Avatars_Signup {
         add_filter( 'add_signup_meta', array( $this, 'add_signup_meta' ) );
 
         add_action( 'wpmu_activate_user', array( &$this, 'save_user_avatar' ), 10, 3 );
+        add_action( 'wpmu_activate_blog', array( &$this, '_save_user_avatar' ), 10, 5 );
 
 
 	}
@@ -85,12 +86,11 @@ class Avatars_Signup {
 					  	$('#user-avatar-container img').attr('src', '<?php echo $gif_url; ?>');
 					  },
 					  onComplete: function(response) {
-					  	console.log(response);
 					  	if ( response.status == false ) {
 					  		alert(response.message);
 					  	}
 					  	else if ( 'upload-error' == response ) {
-					  		alert( '<?php _e( "There was an error uploading the file. Please try again or skip this step, you can upload an avatar after registration", "avatars" ); ?>' );
+					  		alert( '<?php _e( "There was an error uploading the file. Please try with another image", "avatars" ); ?>' );
 						}
 						else {
 							$('#user-avatar-container img').attr('src', decodeURIComponent( response ) );
@@ -98,7 +98,6 @@ class Avatars_Signup {
 						}
 					  },
 					  onCancel: function() {
-					    console.log('no file selected');
 					    $('#user-avatar-container img').attr('src', '');
 					  }
 					});
@@ -187,7 +186,12 @@ class Avatars_Signup {
         return $meta;
     }
 
+    public function _save_user_avatar( $blog_id, $user_id, $pass, $signup_title, $meta ) {
+    	$this->save_user_avatar( $user_id, $pass, $meta );
+    }
+
     function save_user_avatar( $user_id, $pass, $meta ) {
+    	wpmudev_debug($meta);
     	if ( ! empty( $meta['user_avatar'] ) ) {
     		$source_dir = $this->ms_avatars->get_avatar_dir();
     		$image_dir = $source_dir . '/user/' . Avatars::encode_avatar_folder( $user_id );
@@ -260,6 +264,7 @@ class Avatars_Signup {
 			imagepng( $im_dest, $destination_dir . "/$av_type-$avatar_id-$avatar_size.png" );
 		}
 
+		wpmudev_debug("FINISHED");
 		$this->ms_avatars->delete_temp( $image_path );
 
     }

@@ -3,7 +3,7 @@
 Plugin Name: Avatars For Multisite
 Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
-Author: Andrew Billits, Ulrich Sossou (Incsub)
+Author: WPMUDEV
 Author URI: http://premium.wpmudev.org/
 Version: 3.8.1
 Network: true
@@ -12,7 +12,7 @@ WDP ID: 10
 */
 
 /*
-Copyright 2007-2011 Incsub (http://incsub.com)
+Copyright 2007-2014 Incsub (http://incsub.com)
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License (Version 2 - GPLv2) as published by
@@ -37,8 +37,12 @@ define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 
 
 require_once( AVATARS_PLUGIN_DIR . 'helpers.php' );
-require_once( 'wpmudev-debugger.php' );
 
+if ( is_admin() ) {
+	global $wpmudev_notices;
+	$wpmudev_notices[] = array( 'id'=> 130,'name'=> 'Avatars', 'screens' => array( 'toplevel_page_blog_templates_main-network', 'blog-templates_page_blog_templates_categories-network', 'blog-templates_page_blog_templates_settings-network' ) );
+	include_once( AVATARS_PLUGIN_DIR . 'externals/wpmudev-dash-notification.php' );
+}
 /**
  * Plugin main class
  **/
@@ -1165,10 +1169,11 @@ class Avatars {
 		}
 	}
 
+
 	/**
 	 * Return user avatar.
 	 **/
-	function get_avatar( $id_or_email, $size = '96', $default = '', $alt = false ) {
+	function get_avatar( $id_or_email, $size = '96', $default = '', $alt = false, $return_path = false ) {
 		global $current_site, $current_screen;
 
 		if ( ! get_option('show_avatars') )
@@ -1216,6 +1221,7 @@ class Avatars {
 				$default = $avatar_default;
 		}
 
+		
 		if ( !empty( $email ) )
 			$email_hash = md5( strtolower( $email ) );
 
@@ -1286,8 +1292,15 @@ class Avatars {
 			}
 
 			$avatar = "<img alt='{$safe_alt}' src='{$out}' class='avatar avatar-{$size} photo' height='{$size}' width='{$size}' />";
+
+			if ( $return_path )
+				return $out;
+
 		} else {
 			$avatar = "<img alt='{$safe_alt}' src='{$default}' class='avatar avatar-{$size} photo avatar-default' height='{$size}' width='{$size}' />";
+
+			if ( $return_path )
+				return $default;
 		}
 
 		return apply_filters( 'get_avatar', $avatar, $id_or_email, $size, $default, $alt );
@@ -1309,6 +1322,8 @@ class Avatars {
 		}
 		$size = $this->size_map( $size );
 
+		$_default = $default;
+
 		if ( empty( $default ) ) {
 			$default = get_option('avatar_default');
 			if ( empty( $default ) ) {
@@ -1326,8 +1341,10 @@ class Avatars {
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=wavatar&s=' . $size;
 		else if ( $default == 'monsterid' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=monsterid&s=' . $size;
-		else
-			$default = $this->local_default_avatar_url . $size . '.png';
+		else {
+			$admin_email = get_bloginfo( 'admin_email' );
+			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, true );			
+		}
 
 		if ( !empty($id) ) {
 			//user exists locally - check if avatar exists
