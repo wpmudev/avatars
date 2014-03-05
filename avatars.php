@@ -28,6 +28,11 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+/*
+jQuery Ajax File Upload script by Jordan Feldstein (https://github.com/jfeldstein/jQuery.AjaxFileUpload.js/blob/master/README)
+See avatars-files/js/signup.js for more information
+*/
+
 if( !is_multisite() )
 	exit( __( 'The avatars plugin is only compatible with WordPress Multisite.', 'avatars' ) );
 
@@ -35,14 +40,14 @@ define( 'AVATARS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'AVATARS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) . 'avatars-files/' );
 define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 
-
 require_once( AVATARS_PLUGIN_DIR . 'helpers.php' );
 
 if ( is_admin() ) {
 	global $wpmudev_notices;
-	$wpmudev_notices[] = array( 'id'=> 130,'name'=> 'Avatars', 'screens' => array( 'toplevel_page_blog_templates_main-network', 'blog-templates_page_blog_templates_categories-network', 'blog-templates_page_blog_templates_settings-network' ) );
-	include_once( AVATARS_PLUGIN_DIR . 'externals/wpmudev-dash-notification.php' );
+	$wpmudev_notices[] = array( 'id'=> 10,'name'=> 'Avatars', 'screens' => array( 'settings_page_blog-avatar', 'users_page_user-avatar', 'settings_page_edit-user-avatar-network' ) );
+	include_once( 'externals/wpmudev-dash-notification.php' );
 }
+
 /**
  * Plugin main class
  **/
