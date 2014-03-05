@@ -42,11 +42,9 @@ define( 'AVATARS_PLUGIN_URL', plugin_dir_url( __FILE__ ) . 'avatars-files/' );
 
 require_once( AVATARS_PLUGIN_DIR . 'helpers.php' );
 
-if ( is_admin() ) {
-	global $wpmudev_notices;
-	$wpmudev_notices[] = array( 'id'=> 10,'name'=> 'Avatars', 'screens' => array( 'settings_page_blog-avatar', 'users_page_user-avatar', 'settings_page_edit-user-avatar-network' ) );
-	include_once( 'externals/wpmudev-dash-notification.php' );
-}
+global $wpmudev_notices;
+$wpmudev_notices[] = array( 'id'=> 10,'name'=> 'Avatars', 'screens' => array( 'settings_page_blog-avatar', 'users_page_user-avatar', 'settings_page_edit-user-avatar-network' ) );
+include_once( 'externals/wpmudev-dash-notification.php' );
 
 /**
  * Plugin main class
