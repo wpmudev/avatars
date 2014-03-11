@@ -1,0 +1,43 @@
+Plugin Name: Avatars
+Author: Andrew Billits, Ulrich Sossou
+
+Files:
+----------------------------------------------------------------------
+avatars.php - goes in /wp-content/mu-plugins
+avatars-files/ - goes in /wp-content/mu-plugins
+
+Instructions:
+----------------------------------------------------------------------
+2) Place the files in the specified directories
+
+Avatars Functions:
+----------------------------------------------------------------------
+User Avatars:
+
+get_avatar(ID_OR_EMAIL,SIZE,DEFAULT)
+ID_OR_EMAIL = ID or email of the user
+SIZE = '16', '32', '48', '96', '128'
+DEFAULT = 'mystery', 'gravatar_default', 'identicon', 'wavatar', 'monsterid'
+
+Example:
+<?php echo get_avatar(1,'32','identicon'); ?>
+
+
+Blog Avatars:
+
+get_blog_avatar(ID,SIZE,DEFAULT)
+ID_OR_EMAIL = Blog ID
+SIZE = '16', '32', '48', '96', '128'
+DEFAULT = 'mystery', 'gravatar_default', 'identicon', 'wavatar', 'monsterid'
+
+Example:
+<?php echo get_blog_avatar(1,'32','identicon'); ?>
+
+Extras:
+----------------------------------------------------------------------
+avatar-bbpress.php - add avatars to your bbpress template. BBPress must be using the WPMU user tables.
+
+Troubleshooting:
+----------------------------------------------------------------------
+1) Have you checked that all the .php files have been uploaded to the correct directories
+2) Check if the upload directory 'wp-content/uploads' is writable
