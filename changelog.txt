@@ -1,9 +1,16 @@
 Plugin Name: Avatars
-Author: Andrew Billits, Ulrich Sossou
+Author: WPMUDEV
 
 Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
+
+3.9 - 2014/03/11
+----------------------------------------------------------------------
+- Added front-end avatar submission on signup page
+- Fixed issue with legacy upload folders
+- Avatars are now deleted when a user/blog is removed
+- Minor improvements/fixes
 
 3.8.1 - 2013/11/15
 ----------------------------------------------------------------------

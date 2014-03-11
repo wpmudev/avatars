@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: WPMUDEV
 Author URI: http://premium.wpmudev.org/
-Version: 3.8.1
+Version: 3.9
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -64,7 +64,7 @@ class Avatars {
 	/**
 	 * Current version of the plugin
 	 **/
-	var $current_version = '3.6';
+	var $current_version = '3.9';
 
 	private $avatars_dir;
 	private $user_avatar_dir;
@@ -81,12 +81,6 @@ class Avatars {
 
 	private $nginx;
 
-	/**
-	 * PHP4 constructor
-	 **/
-	function Avatars() {
-		$this->__construct();
-	}
 
 	public function get_avatar_url() {
 		return $this->avatars_url;
@@ -118,20 +112,10 @@ class Avatars {
 			$this->network_top_menu_slug = 'ms-admin.php';
 		}
 
-		$main_blog_id = defined( 'BLOG_ID_CURRENT_SITE' ) ? BLOG_ID_CURRENT_SITE : 1;
-		switch_to_blog( $main_blog_id );
-		$upload_dir = wp_upload_dir();
-		$site_url = get_site_url( $main_blog_id, 'index.php' );
-		restore_current_blog();
-
 		$this->nginx = defined( 'AVATARS_USE_NGINX' ) && AVATARS_USE_NGINX == true;
 
-		if ( preg_match('/blogs.dir.*$/', $upload_dir['basedir'] ) )
-			$upload_dir['basedir'] = preg_replace( '/blogs.dir.*$/', 'uploads', $upload_dir['basedir'] );
+		$upload_dir = self::get_avatars_upload_dir();
 
-		if ( preg_match('/blogs.dir.*$/', $upload_dir['baseurl'] ) )
-			$upload_dir['baseurl'] = preg_replace( '/blogs.dir.*$/', 'uploads', $upload_dir['baseurl'] );
-		
 		$this->avatars_dir = $upload_dir['basedir'] . '/avatars';
 		$this->avatars_url = $upload_dir['baseurl'] . '/avatars';
 
@@ -152,6 +136,33 @@ class Avatars {
 
 
 		add_action( 'widgets_init', array( $this, 'widget_init' ) );
+
+		add_action( 'init', array( &$this, 'maybe_upgrade' ) );
+
+		register_activation_hook( __FILE__, array( $this, 'activate' ) );
+
+		add_action( 'wpmu_delete_user', array( &$this, 'delete_user_avatar' ) );
+		add_action( 'delete_blog', array( &$this, 'delete_blog_avatar' ) );
+	}
+
+	public function activate() {
+		update_site_option( 'avatars_plugin_version', $this->current_version );
+	}
+
+	public static function get_avatars_upload_dir() {
+		$main_blog_id = defined( 'BLOG_ID_CURRENT_SITE' ) ? BLOG_ID_CURRENT_SITE : 1;
+		switch_to_blog( $main_blog_id );
+		$upload_dir = wp_upload_dir();
+		$site_url = get_site_url( $main_blog_id, 'index.php' );
+		restore_current_blog();
+
+		if ( preg_match('/blogs.dir.*$/', $upload_dir['basedir'] ) )
+			$upload_dir['basedir'] = preg_replace( '/blogs.dir.*$/', 'uploads', $upload_dir['basedir'] );
+
+		if ( preg_match('/blogs.dir.*$/', $upload_dir['baseurl'] ) )
+			$upload_dir['baseurl'] = preg_replace( '/blogs.dir.*$/', 'uploads', $upload_dir['baseurl'] );
+
+		return $upload_dir;
 	}
 
 
@@ -161,6 +172,7 @@ class Avatars {
 	 * Display errors when BuddyPress is installed and/or when avatars directory is not writable
 	 **/
 	function admin_errors() {
+
 		// check if BuddyPress is installed
 		if( defined( 'BP_VERSION' ) ) {
 
@@ -171,9 +183,9 @@ class Avatars {
 
 			global $wp_filesystem;
 
-
 			// check if old directory exists
 			if ( is_dir( WP_CONTENT_DIR . '/avatars' ) && ! is_dir( $this->avatars_dir ) ) {
+				
 
 				require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php' );
 				require_once( ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php' );
@@ -254,7 +266,9 @@ class Avatars {
 			add_action( 'admin_init', array( &$this, 'process' ) );
 
 			// url rewriting
+
 			add_action( 'init', array( &$this, 'flush_rules' ) );
+			
 			add_action( 'generate_rewrite_rules', array( &$this, 'rewrite_rules' ) );
 			add_filter( 'query_vars', array( &$this, 'query_var' ) );
 			add_action( 'template_redirect', array( &$this, 'load_avatar' ), -1 );
@@ -277,6 +291,49 @@ class Avatars {
 				}
 			}
 		}
+	}
+
+	public function maybe_upgrade() {
+
+		$version_saved = get_site_option( 'avatars_plugin_version', '3.8.1' );
+
+		if ( $version_saved == $this->current_version )
+			return;
+
+		require_once( 'upgrades.php' );
+
+		if ( version_compare( $version_saved, '3.9', '<' ) ) {
+			avatars_upgrade_39();
+		}
+	}
+
+	private function delete_avatar_folder( $id, $type ) {
+		global $wp_filesystem;
+
+		$folder = Avatars::encode_avatar_folder( $id );
+
+		$url = 'options-general.php';
+		if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) ) {
+			return; // stop processing here
+		}
+
+		if ( ! WP_Filesystem( $creds ) ) {
+			request_filesystem_credentials( $url, '', false, false, null );
+		}
+
+		$dir = $type == 'user' ? $this->user_avatar_dir . $folder : $this->blog_avatar_dir . $folder;
+
+		if ( $wp_filesystem->is_dir( $dir) ) {
+			$result = $wp_filesystem->delete( $dir, true );
+		}
+	}
+
+	public function delete_user_avatar( $user_id ) {
+		$this->delete_avatar_folder( $user_id, 'user' );
+	}
+
+	public function delete_blog_avatar( $blog_id ) {
+		$this->delete_avatar_folder( $blog_id, 'blog' );
 	}
 
 	public function widget_init() {

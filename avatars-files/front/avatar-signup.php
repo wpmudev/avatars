@@ -66,11 +66,12 @@ class Avatars_Signup {
 							?><img alt="" src="<?php echo $user_avatar; ?>" class="avatar avatar-96 photo avatar-default" height="96" width="96"><?php
 						}
 						else {
-							echo get_avatar( 0, '96', get_option('avatar_default') );
+							echo get_avatar( 0, '96', get_option( 'avatar_default' ) );
 						}
 
 					?>
 					<input type="hidden" id="user-avatar-filename" name="user-avatar-file" value="<?php echo $user_avatar; ?>">
+					<button id="user-avatar-field" style="display:none"><?php _e( 'Choose a file', 'avatars' ); ?></button>
 					<input type="file" name="user_avatar" id="user-avatar">
 				</div>
 				
@@ -101,6 +102,17 @@ class Avatars_Signup {
 					    $('#user-avatar-container img').attr('src', '');
 					  }
 					});
+
+					$( '#user-avatar' ).hide();
+					$( '#user-avatar-field' )
+						.show()
+						.css( 'display', 'block' )
+						.css( 'margin-top', '25px' )
+						.css( 'margin-bottom', '25px' )
+						.on( 'click', function( e ) {
+							e.preventDefault();
+							$( '#user-avatar' ).trigger( 'click' );
+						});
 				});
 			</script>
 		<?php
@@ -191,11 +203,11 @@ class Avatars_Signup {
     }
 
     function save_user_avatar( $user_id, $pass, $meta ) {
-    	wpmudev_debug($meta);
+
     	if ( ! empty( $meta['user_avatar'] ) ) {
     		$source_dir = $this->ms_avatars->get_avatar_dir();
     		$image_dir = $source_dir . '/user/' . Avatars::encode_avatar_folder( $user_id );
-    		wpmudev_debug($image_dir);
+
     		$this->upload_image( $source_dir, $image_dir, $meta['user_avatar'], 'user', $user_id );
     	}
     }
@@ -215,7 +227,7 @@ class Avatars_Signup {
 			chmod( $image_path, 0777 );
 		else
 			return false;
-		wpmudev_debug($image_path);
+
 		list( $avatar_width, $avatar_height, $avatar_type, $avatar_attr ) = getimagesize( $image_path );
 
 		if ( $ext == "gif"){
@@ -255,7 +267,7 @@ class Avatars_Signup {
 		}
 		
 		$sizes = $this->ms_avatars->get_avatar_sizes();
-		wpmudev_debug($sizes);
+
 		foreach( $sizes as $avatar_size ) {
 			$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
 			imagecopyresampled( $im_dest, $im, 0, 0, 0, 0, $avatar_size, $avatar_size, $avatar_width, $avatar_height );
@@ -264,7 +276,6 @@ class Avatars_Signup {
 			imagepng( $im_dest, $destination_dir . "/$av_type-$avatar_id-$avatar_size.png" );
 		}
 
-		wpmudev_debug("FINISHED");
 		$this->ms_avatars->delete_temp( $image_path );
 
     }
