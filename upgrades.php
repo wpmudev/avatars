@@ -61,3 +61,52 @@ function avatars_upgrade_39() {
 	}
 	
 }
+
+function avatars_upgrade_391() {
+	global $wp_filesystem,$wpdb,$ms_avatar;
+
+	if ( ! function_exists( 'request_filesystem_credentials' ) )
+		include_once( ABSPATH . 'wp-admin/includes/file.php' );
+
+	$url = wp_nonce_url( '', 'avatars-nonce' );
+
+	if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) ) {
+		return; // stop processing here
+	}
+
+	if ( ! WP_Filesystem( $creds ) ) {
+		request_filesystem_credentials( $url, '', false, false, null );
+	}
+
+	// Get the max user ID
+	$max_id = $wpdb->get_var( "SELECT MAX(ID) FROM $wpdb->users" );
+
+	$users_ids = range( 1, $max_id );
+	$query_in = implode( ',', $users_ids );
+
+	$results = $wpdb->get_col( "SELECT ID FROM $wpdb->users WHERE ID IN ($query_in)" );
+
+	$delete_users_ids = array_diff( $users_ids, $results );
+
+	if ( ! empty( $delete_users_ids ) && is_array( $delete_users_ids ) ) {
+		foreach ( $delete_users_ids as $user_id ) {
+			$ms_avatar->delete_user_avatar( $user_id );
+		}
+	}
+
+	// Same for blogs
+	$max_id = $wpdb->get_var( "SELECT MAX(ID) FROM $wpdb->blogs" );
+
+	$blogs_ids = range( 1, $max_id );
+	$query_in = implode( ',', $blogs_ids );
+
+	$results = $wpdb->get_col( "SELECT ID FROM $wpdb->blogs WHERE ID IN ($query_in)" );
+
+	$delete_blogs_ids = array_diff( $blogs_ids, $results );
+
+	if ( ! empty( $delete_blogs_ids ) && is_array( $delete_blogs_ids ) ) {
+		foreach ( $delete_blogs_ids as $blog_id ) {
+			$ms_avatar->delete_blog_avatar( $blog_id );
+		}
+	}
+}
