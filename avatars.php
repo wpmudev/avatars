@@ -3,7 +3,7 @@
 Plugin Name: Avatars For Multisite
 Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
-Author: WPMUDEV
+Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
 Version: 3.9.1
 Network: true
