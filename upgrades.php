@@ -63,20 +63,7 @@ function avatars_upgrade_39() {
 }
 
 function avatars_upgrade_391() {
-	global $wp_filesystem,$wpdb,$ms_avatar;
-
-	if ( ! function_exists( 'request_filesystem_credentials' ) )
-		include_once( ABSPATH . 'wp-admin/includes/file.php' );
-
-	$url = wp_nonce_url( '', 'avatars-nonce' );
-
-	if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) ) {
-		return; // stop processing here
-	}
-
-	if ( ! WP_Filesystem( $creds ) ) {
-		request_filesystem_credentials( $url, '', false, false, null );
-	}
+	global $wpdb,$ms_avatar;
 
 	// Get the max user ID
 	$max_id = $wpdb->get_var( "SELECT MAX(ID) FROM $wpdb->users" );
@@ -109,4 +96,33 @@ function avatars_upgrade_391() {
 			$ms_avatar->delete_blog_avatar( $blog_id );
 		}
 	}
+}
+
+function avatars_upgrade_392() {
+	global $wpdb,$ms_avatar,$wp_filesystem;
+
+	// We are going to delete temporary avatars files
+	$avatars_dir = $ms_avatar->get_avatar_dir();
+
+	$url = 'options-general.php';
+
+	if ( ! function_exists( 'request_filesystem_credentials' ) )
+		include_once( ABSPATH . '/wp-admin/includes/file.php' );
+
+	if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) ) {
+		return; // stop processing here
+	}
+
+	if ( ! WP_Filesystem( $creds ) ) {
+		request_filesystem_credentials( $url, '', false, false, null );
+	}
+
+	if ( $wp_filesystem->is_dir( $avatars_dir ) ) {
+		$list = $wp_filesystem->dirlist( $avatars_dir );
+		foreach ( $list as $item ) {
+			if ( $wp_filesystem->is_file( $avatars_dir . '/' . $item['name'] ) );
+				$wp_filesystem->delete( $avatars_dir . '/' . $item['name'] );
+		}
+	}
+
 }

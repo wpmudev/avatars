@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-Version: 3.9.1
+Version: 3.9.3
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -64,7 +64,7 @@ class Avatars {
 	/**
 	 * Current version of the plugin
 	 **/
-	var $current_version = '3.9.1';
+	var $current_version = '3.9.3';
 
 	private $avatars_dir;
 	public $user_avatar_dir;
@@ -143,7 +143,9 @@ class Avatars {
 
 		add_action( 'wpmu_delete_user', array( &$this, 'delete_user_avatar' ) );
 		add_action( 'delete_blog', array( &$this, 'delete_blog_avatar' ) );
+
 	}
+
 
 	public function activate() {
 		update_site_option( 'avatars_plugin_version', $this->current_version );
@@ -304,21 +306,29 @@ class Avatars {
 
 		if ( version_compare( $version_saved, '3.9', '<' ) ) {
 			avatars_upgrade_39();
-			update_site_option( 'avatars_plugin_version', '3.9' );
 		}
 
 		if ( version_compare( $version_saved, '3.9.1', '<' ) ) {
 			avatars_upgrade_391();
-			update_site_option( 'avatars_plugin_version', '3.9.1' );
 		}
+
+		if ( version_compare( $version_saved, '3.9.3', '<' ) ) {
+			avatars_upgrade_392();
+		}
+
+		update_site_option( 'avatars_plugin_version', $this->current_version );
 	}
 
-	private function delete_avatar_folder( $id, $type ) {
+	private function delete_avatar_files( $id, $type ) {
 		global $wp_filesystem;
 
-		$folder = Avatars::encode_avatar_folder( $id );
+		$sizes = $this->get_avatar_sizes();
 
 		$url = 'options-general.php';
+
+		if ( ! function_exists( 'request_filesystem_credentials' ) )
+			include_once( ABSPATH . '/wp-admin/includes/file.php' );
+
 		if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) ) {
 			return; // stop processing here
 		}
@@ -327,19 +337,23 @@ class Avatars {
 			request_filesystem_credentials( $url, '', false, false, null );
 		}
 
+		$folder = Avatars::encode_avatar_folder( $id );
 		$dir = $type == 'user' ? $this->user_avatar_dir . $folder : $this->blog_avatar_dir . $folder;
 
-		if ( $wp_filesystem->is_dir( $dir) ) {
-			$result = $wp_filesystem->delete( $dir, true );
+		foreach ( $sizes as $size ) {
+			$file = $dir . '/' . $type . '-' . $id . '-' . $size . '.png';
+			if ( $wp_filesystem->is_file( $file ) )
+				$wp_filesystem->delete( $file );
+
 		}
 	}
 
 	public function delete_user_avatar( $user_id ) {
-		$this->delete_avatar_folder( $user_id, 'user' );
+		$this->delete_avatar_files( $user_id, 'user' );
 	}
 
 	public function delete_blog_avatar( $blog_id ) {
-		$this->delete_avatar_folder( $blog_id, 'blog' );
+		$this->delete_avatar_files( $blog_id, 'blog' );
 	}
 
 	public function widget_init() {
@@ -1226,13 +1240,23 @@ class Avatars {
 	 * Delete temporary file.
 	 **/
 	function delete_temp( $file ) {
-		if ( file_exists( $file ) ) {
-			chmod( $file, 0777 );
-			if( unlink( $file ) )
-				return true;
-			else
-				return false;
+		global $wp_filesystem;
+
+		$url = 'options-general.php';
+
+		if ( ! function_exists( 'request_filesystem_credentials' ) )
+			include_once( ABSPATH . '/wp-admin/includes/file.php' );
+
+		if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) ) {
+			return; // stop processing here
 		}
+
+		if ( ! WP_Filesystem( $creds ) ) {
+			request_filesystem_credentials( $url, '', false, false, null );
+		}
+
+		if ( $wp_filesystem->is_file( $file ) )
+			$wp_filesystem->delete( $file );
 	}
 
 
@@ -1323,9 +1347,12 @@ class Avatars {
 					if (defined('AVATARS_USE_ACTUAL_FILES') && AVATARS_USE_ACTUAL_FILES) {
 						$info = wp_upload_dir();
 						$avatars_url = trailingslashit($info['baseurl']) . basename(dirname($this->user_avatar_dir));
+
 						$out = preg_replace('/' . preg_quote(dirname($this->user_avatar_dir) , '/') . '/', $avatars_url, $file);
 					} else {
+
 						$protocol = ( is_ssl() ) ? 'https://' : 'http://';
+
 						if ( ! $this->nginx ) {
 							$out = $protocol . $current_site->domain . $current_site->path . 'avatar/user-' . $avatar_user_id . '-' . $size . '.png';
 						}
@@ -1411,6 +1438,7 @@ class Avatars {
 			$admin_email = get_bloginfo( 'admin_email' );
 			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, true );			
 		}
+
 
 		if ( !empty($id) ) {
 			//user exists locally - check if avatar exists

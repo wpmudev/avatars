@@ -1,9 +1,18 @@
 Plugin Name: Avatars
-Author: WPMUDEV
+Author: WPMU DEV
 
 Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
+
+3.9.3 - 2014/05/20
+----------------------------------------------------------------------
+- Fixed: Temporary files were not being deleted sometimes.
+
+3.9.2 - 2014/05/16
+----------------------------------------------------------------------
+- non-empty Avatars folders were being delete in some cases when deleting a user/blog.
+- Avatars now delete users files instead of folders.
 
 3.9.1 - 2014/04/10
 ----------------------------------------------------------------------
