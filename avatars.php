@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-Version: 3.9.3
+Version: 3.9.4
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -82,35 +82,14 @@ class Avatars {
 	private $nginx;
 
 
-	public function get_avatar_url() {
-		return $this->avatars_url;
-	}
-
-	public function get_avatar_dir() {
-		return $this->avatars_dir;
-	}
-
 	/**
 	 * PHP5 constructor
 	 **/
 	function __construct() {
 		global $wp_version;
 
-		// load text domain
-		if ( defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/avatars.php' ) ) {
-			load_muplugin_textdomain( 'avatars', 'avatars-files/languages' );
-		} else {
-			load_plugin_textdomain( 'avatars', false, dirname( plugin_basename( __FILE__ ) ) . '/avatars-files/languages' );
-		}
-
-		// set network settings parent file
-		if( version_compare( $wp_version , '3.0.9', '>' ) ) {
-			$this->network_top_menu = 'settings.php';
-			$this->network_top_menu_slug = 'network/settings.php';
-		} else {
-			$this->network_top_menu = 'ms-admin.php';
-			$this->network_top_menu_slug = 'ms-admin.php';
-		}
+		$this->network_top_menu = 'settings.php';
+		$this->network_top_menu_slug = 'network/settings.php';
 
 		$this->nginx = defined( 'AVATARS_USE_NGINX' ) && AVATARS_USE_NGINX == true;
 
@@ -128,34 +107,41 @@ class Avatars {
 		$this->local_default_avatar_url = AVATARS_PLUGIN_URL . 'images/default-avatar-';
 		$this->local_default_avatar_path = AVATARS_PLUGIN_DIR . 'images/default-avatar-';
 
-		// display admin notices
-		add_action( 'admin_notices', array( &$this, 'admin_errors' ) );
+		register_activation_hook( __FILE__, array( $this, 'activate' ) );
+		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
 
-		// load plugin functions
-		add_action( 'plugins_loaded', array( &$this, 'plugins_loaded' ) );
-
-
-		add_action( 'widgets_init', array( $this, 'widget_init' ) );
-
+		// Do we need to upgrade?
 		add_action( 'init', array( &$this, 'maybe_upgrade' ) );
 
-		register_activation_hook( __FILE__, array( $this, 'activate' ) );
+		// load plugin functions
+		add_action( 'plugins_loaded', array( &$this, 'init_plugin' ) );
 
-		add_action( 'wpmu_delete_user', array( &$this, 'delete_user_avatar' ) );
-		add_action( 'delete_blog', array( &$this, 'delete_blog_avatar' ) );
+		// Load plugin language domain
+		add_action( 'init', array( $this, 'load_textdomain' ) );		
 
 	}
 
-
 	public function activate() {
 		update_site_option( 'avatars_plugin_version', $this->current_version );
+	}
+
+	public function deactivate() {
+		update_site_option( 'avatars_plugin_version' );
+	}
+
+	public function load_textdomain() {
+		$domain = 'avatars';
+		$locale = apply_filters( 'plugin_locale', get_locale(), $domain );
+
+		load_textdomain( $domain, trailingslashit( WP_LANG_DIR ) . $domain . '/' . $domain . '-' . $locale . '.mo' );
+		load_plugin_textdomain( $domain, false, dirname( plugin_basename( __FILE__ ) ) . '/avatars-files/languages' );
+
 	}
 
 	public static function get_avatars_upload_dir() {
 		$main_blog_id = defined( 'BLOG_ID_CURRENT_SITE' ) ? BLOG_ID_CURRENT_SITE : 1;
 		switch_to_blog( $main_blog_id );
 		$upload_dir = wp_upload_dir();
-		$site_url = get_site_url( $main_blog_id, 'index.php' );
 		restore_current_blog();
 
 		if ( preg_match('/blogs.dir.*$/', $upload_dir['basedir'] ) )
@@ -247,15 +233,16 @@ class Avatars {
 	/**
 	 * Load Avatars functions after all other plugins are loaded
 	 **/
-	function plugins_loaded() {
-		if( !defined( 'BP_VERSION' ) ) {
+	function init_plugin() {
+
+		if( ! defined( 'BP_VERSION' ) ) {
 
 			require_once( AVATARS_PLUGIN_DIR . 'front/widget.php' );
-			
 
-			require_once( AVATARS_PLUGIN_DIR . 'front/avatar-signup.php' );
-			new Avatars_Signup();	
-			
+			if ( ! is_admin() ) {
+				require_once( AVATARS_PLUGIN_DIR . 'front/avatar-signup.php' );
+				new Avatars_Signup();	
+			}			
 
 			// add local avatar to the defaults list
 			add_filter( 'avatar_defaults', array( &$this, 'defaults' ) );
@@ -268,7 +255,6 @@ class Avatars {
 			add_action( 'admin_init', array( &$this, 'process' ) );
 
 			// url rewriting
-
 			add_action( 'init', array( &$this, 'flush_rules' ) );
 			
 			add_action( 'generate_rewrite_rules', array( &$this, 'rewrite_rules' ) );
@@ -282,6 +268,18 @@ class Avatars {
 			add_action( 'user_admin_menu', array( &$this, 'user_plug_pages' ) );
 			add_action( 'custom_menu_order', array( &$this, 'admin_menu' ) );
 			add_filter( 'whitelist_options', array( &$this, 'whitelist' ) );
+
+			// Delete user avatar when a user is deleted
+			add_action( 'wpmu_delete_user', array( &$this, 'delete_user_avatar' ) );
+
+			// Delete a blog avatar when a blog is deleted
+			add_action( 'delete_blog', array( &$this, 'delete_blog_avatar' ) );
+
+			// display admin notices
+			add_action( 'admin_notices', array( &$this, 'admin_errors' ) );
+				
+			// Init widgets
+			add_action( 'widgets_init', array( $this, 'widget_init' ) );
 
 			// add necessary javascripts
 			$page = isset( $_GET['page'] ) ? $_GET['page'] : '';
@@ -322,20 +320,18 @@ class Avatars {
 	private function delete_avatar_files( $id, $type ) {
 		global $wp_filesystem;
 
-		$sizes = $this->get_avatar_sizes();
+		$sizes = self::get_avatar_sizes();
 
 		$url = 'options-general.php';
 
 		if ( ! function_exists( 'request_filesystem_credentials' ) )
 			include_once( ABSPATH . '/wp-admin/includes/file.php' );
 
-		if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) ) {
+		if ( false === ( $creds = request_filesystem_credentials( $url, '', false, false, null ) ) )
 			return; // stop processing here
-		}
 
-		if ( ! WP_Filesystem( $creds ) ) {
+		if ( ! WP_Filesystem( $creds ) )
 			request_filesystem_credentials( $url, '', false, false, null );
-		}
 
 		$folder = Avatars::encode_avatar_folder( $id );
 		$dir = $type == 'user' ? $this->user_avatar_dir . $folder : $this->blog_avatar_dir . $folder;
@@ -384,10 +380,8 @@ class Avatars {
 	function flush_rules() {
 		$rules = get_option( 'rewrite_rules' );
 
-		if ( ! isset( $rules['avatar/(.+)'] ) ) {
-			global $wp_rewrite;
-			$wp_rewrite->flush_rules();
-		}
+		if ( ! isset( $rules['avatar/(.+)'] ) )
+			flush_rewrite_rules();
 	}
 
 	/**
@@ -419,21 +413,16 @@ class Avatars {
 	function plug_pages() {
 		global $wpdb, $wp_version;
 
-		if ( $wpdb->blogid == '1' )
-			add_submenu_page('options-general.php', __( 'Site Avatar', 'avatars' ), __( 'Site Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
-		else
-			add_submenu_page('options-general.php', __( 'Site Avatar', 'avatars' ), __( 'Site Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
+		add_options_page( __( 'Site Avatar', 'avatars' ), __( 'Site Avatar', 'avatars' ), 'manage_options', 'blog-avatar', array( &$this, 'page_edit_blog_avatar' ) );
 		
-		if ( current_user_can('edit_users') )
-			add_submenu_page('users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'manage_options', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
+		if ( current_user_can( 'edit_users' ) )
+			add_submenu_page( 'users.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'manage_options', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
 		else
-			add_submenu_page('profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
+			add_submenu_page( 'profile.php', __( 'Your Avatar', 'avatars' ), __( 'Your Avatar', 'avatars' ), 'read', 'user-avatar', array( &$this, 'page_edit_user_avatar' ) );
 		
-
 		if ( is_super_admin() && isset( $_GET['page'] ) && $_GET['page'] == 'edit-user-avatar' ) {
 			add_action( 'admin_page_edit', 'page_site_admin_edit_user_avatar' );
-			if( !version_compare( $wp_version , '3.0.9', '>' ) )
-				add_submenu_page( $this->network_top_menu, __( 'Edit User Avatar', 'avatars' ), __( 'Edit User Avatar', 'avatars' ), 'manage_network_options', 'edit-user-avatar', array( &$this, 'page_site_admin_edit_user_avatar' ) );
+			add_submenu_page( $this->network_top_menu, __( 'Edit User Avatar', 'avatars' ), __( 'Edit User Avatar', 'avatars' ), 'manage_network_options', 'edit-user-avatar', array( &$this, 'page_site_admin_edit_user_avatar' ) );
 		}
 	}
 	
@@ -445,9 +434,7 @@ class Avatars {
 	 * Add network admin page.
 	 **/
 	function network_admin_page() {
-		global $wp_version;
-		if( version_compare( $wp_version , '3.0.9', '>' ) )
-			add_submenu_page( $this->network_top_menu, __( 'Edit User Avatar', 'avatars' ), __( 'Edit User Avatar', 'avatars' ), 'manage_network_options', 'edit-user-avatar', array( &$this, 'page_site_admin_edit_user_avatar' ) );
+		add_submenu_page( $this->network_top_menu, __( 'Edit User Avatar', 'avatars' ), __( 'Edit User Avatar', 'avatars' ), 'manage_network_options', 'edit-user-avatar', array( &$this, 'page_site_admin_edit_user_avatar' ) );
 	}
 
 	/**
@@ -632,7 +619,7 @@ class Avatars {
 			$type = 'user';
 
 		// Avatar possible sizes
-		$sizes = array( 16, 32, 48, 96, 128 );
+		$sizes = self::get_avatar_sizes();
 		foreach ( $sizes as $avatar_size ) {
 			// Destination filename
 			$dst_file = $avatar_path . "$type-$id-$avatar_size.png";
@@ -654,7 +641,7 @@ class Avatars {
 		return substr( md5( $id ), 0, 3 );
 	}
 
-	public function get_avatar_sizes() {
+	public static function get_avatar_sizes() {
 		return array( 16, 32, 48, 96, 128 );
 	}
 
@@ -707,7 +694,7 @@ class Avatars {
 			return false;
 		}
 
-		$sizes = $this->get_avatar_sizes();
+		$sizes = self::get_avatar_sizes();
 
 		foreach( $sizes as $avatar_size ) {
 			$im_dest = imagecreatetruecolor( $avatar_size, $avatar_size );
@@ -1330,7 +1317,7 @@ class Avatars {
 			$default = "$host/avatar/ad516503a11cd5ca435acc9bb6523536?s={$size}"; // ad516503a11cd5ca435acc9bb6523536 == md5('unknown@gravatar.com')
 		elseif( 'blank' == $default )
 			$default = includes_url( 'images/blank.gif' );
-		elseif( !empty( $email ) && 'gravatar_default' == $default )
+		elseif( ! empty( $email ) && 'gravatar_default' == $default )
 			$default = '';
 		elseif( 'gravatar_default' == $default )
 			$default = "$host/avatar/s={$size}";
@@ -1428,17 +1415,20 @@ class Avatars {
 			$default = $this->local_default_avatar_url . $size . '.png';
 		else if ( $default == 'gravatar_default' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&s=' . $size;
+		elseif( 'blank' == $default )
+			$default = includes_url( 'images/blank.gif' );
 		else if ( $default == 'identicon' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=identicon&s=' . $size;
 		else if ( $default == 'wavatar' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=wavatar&s=' . $size;
 		else if ( $default == 'monsterid' )
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=monsterid&s=' . $size;
+		else if ( $default == 'mystery' )
+			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=mm&s=' . $size;
 		else {
 			$admin_email = get_bloginfo( 'admin_email' );
 			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, true );			
 		}
-
 
 		if ( !empty($id) ) {
 			//user exists locally - check if avatar exists

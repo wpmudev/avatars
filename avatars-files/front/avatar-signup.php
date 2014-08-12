@@ -10,6 +10,9 @@ class Avatars_Signup {
 
 		$this->ms_avatars = $ms_avatar;
 
+		if ( defined( 'AVATARS_DISABLE_SIGNUP_UPLOAD' ) && AVATARS_DISABLE_SIGNUP_UPLOAD )
+			return;
+
 		// Signup: WordPress       
 		add_action( 'wp_enqueue_scripts', array( &$this, 'enqueue_front_scripts' ) );
         add_action( 'signup_extra_fields', array( $this, 'render_signup_extra_fields' ) );
