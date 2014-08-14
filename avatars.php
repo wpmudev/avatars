@@ -1450,7 +1450,7 @@ class Avatars {
 						$path = add_query_arg( 'avatar', 'blog-' . $id . '-' . $size . '.png', $path );
 					}
 				}
-				if ( isset( $_GET['page'] ) && 'blog-avatar' == $_GET['page']  || $_GET['page'] == 'edit-blog-avatar' )
+				if ( isset( $_GET['page'] ) && 'blog-avatar' == $_GET['page']  || isset( $_GET['page'] ) && $_GET['page'] == 'edit-blog-avatar' )
 					$path = add_query_arg( 'rand', md5(time()), $path );	
 
 			} else {
