@@ -21,13 +21,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 (function($) {
     $.fn.ajaxfileupload = function(options) {
-
         var settings = {
           params: {},
           action: '',
-          onStart: function() { console.log('starting upload'); console.log(this); },
-          onComplete: function(response) { console.log('got response: '); console.log(response); console.log(this); },
-          onCancel: function() { console.log('cancelling: '); console.log(this); },
+          onStart: function() { },
+          onComplete: function(response) { },
+          onCancel: function() { },
           validate_extensions : true,
           valid_extensions : ['gif','png','jpg','jpeg'],
           submit_button : null
@@ -172,7 +171,3 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         });
       }
 })( jQuery )
-
-
-
-
