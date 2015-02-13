@@ -69,7 +69,7 @@ class Avatars_Signup {
 							?><img alt="" src="<?php echo $user_avatar; ?>" class="avatar avatar-96 photo avatar-default" height="96" width="96"><?php
 						}
 						else {
-							echo get_avatar( 0, '96', get_option( 'avatar_default' ) );
+							?><img alt="" src="<?php echo AVATARS_PLUGIN_URL . '/images/default-avatar-96.png'; ?>" class="avatar avatar-96 photo avatar-default" height="96" width="96"><?php
 						}
 
 					?>
