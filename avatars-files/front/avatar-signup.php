@@ -18,7 +18,6 @@ class Avatars_Signup {
         add_action( 'signup_extra_fields', array( $this, 'render_signup_extra_fields' ) );
         add_action( 'signup_blogform', array( $this, 'registration_render_signup_site_extra_fields' ) );
 
-        add_action( 'wp_ajax_nopriv_avatars_upload_signup_avatar', array( &$this, 'upload_user_signup_avatar' ) );
         add_filter( 'add_signup_meta', array( $this, 'add_signup_meta' ) );
 
         add_action( 'wpmu_activate_user', array( &$this, 'save_user_avatar' ), 10, 3 );
@@ -27,21 +26,7 @@ class Avatars_Signup {
 
 	}
 
-	public function upload_user_signup_avatar() {
-		$avatar_path = $this->ms_avatars->get_avatar_dir() . '/';
-		$image_path = $avatar_path . Avatars::encode_avatar_folder( rand( 0, 1000 ) ) . '-user-avatar';
-
-		$result = $this->upload_signup_user_image( $_FILES['user_avatar'], $avatar_path, $image_path );
-
-		if ( 'upload-error' != $result ) {
-			echo esc_url( $this->ms_avatars->get_avatar_url() . '/' . $result );
-			die();
-		}
-
-		echo $result;
-
-		die();
-	}
+	
 
 	public function enqueue_front_scripts() {
 		global $pagenow;
@@ -128,70 +113,7 @@ class Avatars_Signup {
 		<?php
 	}
 
-	private function upload_signup_user_image( $file, $avatar_path, $image_path ) {
-
-		$type = $file['type'];
-		$file_name = $file['name'];
-		$tmp_name = $file['tmp_name'];
-
-		if ( $type == "image/gif"){
-			$avatar_image_type = 'gif';
-			$ext = '.gif';
-		}
-		if ( $type == "image/jpeg"){
-			$avatar_image_type = 'jpeg';
-			$ext = '.jpeg';
-		}
-		if ( $type == "image/pjpeg"){
-			$avatar_image_type = 'jpeg';
-			$ext = '.jpeg';
-		}
-		if ( $type == "image/jpg"){
-			$avatar_image_type = 'jpeg';
-			$ext = '.jpeg';
-		}
-		if ( $type == "image/png"){
-			$avatar_image_type = 'png';
-			$ext = '.png';
-		}
-		if ( $type == "image/x-png"){
-			$avatar_image_type = 'png';
-			$ext = '.png';
-		}
-
-		$image_path .= $ext;
-
-		if( move_uploaded_file( $tmp_name, $image_path ) )
-			chmod( $image_path, 0777 );
-		else
-			return 'upload-error';
-
-		$im = false;
-		try {
-			list( $avatar_width, $avatar_height, $avatar_type, $avatar_attr ) = getimagesize( $image_path );
-
-
-			if ($avatar_image_type == 'jpeg')
-				$im = @ImageCreateFromjpeg( $image_path );
-
-			if ($avatar_image_type == 'png')
-				$im = @ImageCreateFrompng( $image_path );
-
-			if ($avatar_image_type == 'gif')
-				$im = @ImageCreateFromgif( $image_path );
-		}
-		catch( Exception $e ) {
-			return 'upload-error';
-		}
-
-		if (!$im) {
-			return 'upload-error';
-		}
-
-		return basename( $image_path );
-
-
-	}
+	
 
 
 	function add_signup_meta ($meta) {
