@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-Version: 4.0.2
+Version: 4.1
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -67,7 +67,7 @@ class Avatars {
 	/**
 	 * Current version of the plugin
 	 **/
-	var $current_version = '4.0.1';
+	var $current_version = '4.1';
 
 	private $avatars_dir;
 	public $user_avatar_dir;
@@ -527,8 +527,8 @@ class Avatars {
 					jQuery( '#height' ).val(coords.h);
 				}
 
-				var xinit = 128;
-				var yinit = 128;
+				var xinit = 256;
+				var yinit = 256;
 				var ratio = xinit / yinit;
 				var ximg = jQuery('#upload').width();
 				var yimg = jQuery('#upload').height();
@@ -595,7 +595,7 @@ class Avatars {
 	 * Map a numeric value to a supported avatar size.
 	 **/
 	function size_map( $size ) {
-		if ( $size != '16' && $size != '32' && $size != '48' && $size != '96' && $size != '128' ) {
+		if ( $size != '16' && $size != '32' && $size != '48' && $size != '96' && $size != '128' && $size != '192' && $size != '256' ) {
 			if ( $size < 25 ) {
 				$size = 16;
 			} else if ( $size > 24 && $size < 41 ) {
@@ -604,8 +604,12 @@ class Avatars {
 				$size = 48;
 			} else if ( $size > 72 && $size < 113 ) {
 				$size = 96;
-			} else if ( $size > 112 ) {
+			} else if ( $size > 112 && $size < 153 ) {
 				$size = 128;
+			} else if ( $size > 152 && $size < 213 ) {
+				$size = 192;
+			} else if ( $size > 212 ) {
+				$size = 256;
 			}
 		}
 		return $size;
@@ -653,7 +657,7 @@ class Avatars {
 	}
 
 	public static function get_avatar_sizes() {
-		return array( 16, 32, 48, 96, 128 );
+		return array( 16, 32, 48, 96, 128, 192, 256 );
 	}
 
 	private function upload_image( $file, $avatar_path, $image_path, $avatar_id, $av_type ) {
@@ -740,6 +744,8 @@ class Avatars {
 						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-48.png');
 						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-96.png');
 						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-128.png');
+						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-192.png');
+						$this->delete_temp( $avatar_path . 'blog-' . $blog_id . '-256.png');
 
 						wp_redirect( admin_url( 'options-general.php?page=blog-avatar&updated=true' ) );
 						exit;
@@ -806,6 +812,8 @@ class Avatars {
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-48.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-96.png');
 						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-128.png');
+						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-192.png');
+						$this->delete_temp( $avatar_path . 'user-' . $user_ID . '-256.png');
 
 						if ( 'user-avatar' == $plugin_page ) {
 							$link = add_query_arg(
@@ -1514,4 +1522,3 @@ class Avatars {
 }
 global $ms_avatar;
 $ms_avatar = new Avatars();
-
