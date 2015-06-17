@@ -30,7 +30,10 @@ class Avatars_Signup {
 
 	public function enqueue_front_scripts() {
 		global $pagenow;
-		if ( 'wp-signup.php' == $pagenow ) {
+
+		$enqueue_scripts = ( 'wp-signup.php' == $pagenow );
+		$enqueue_scripts = apply_filters( 'avatars_enqueue_signup_scripts', $enqueue_scripts, $pagenow );
+		if ( $enqueue_scripts ) {
 			wp_enqueue_script( 'jquery' );
 			wp_enqueue_script( 'avatars-signup-js', AVATARS_PLUGIN_URL . 'js/signup.js', array( 'jquery' ) );
 
