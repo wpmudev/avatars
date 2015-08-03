@@ -20,6 +20,14 @@ if( !function_exists( 'get_blog_avatar' ) ):
 	}
 endif;
 
+if( !function_exists( 'get_blog_avatar_url' ) ):
+	function get_blog_avatar_url( $id, $size = '96', $default = '' ) {
+		global $ms_avatar;
+		return $ms_avatar->get_blog_avatar_url( $id, $size, $default );
+	}
+endif;
+
+
 
 /**
  * Display blog avatar by user ID.

@@ -1411,8 +1411,6 @@ class Avatars {
 	 * Return blog avatar.
 	 **/
 	function get_blog_avatar( $id, $size = '96', $default = '', $alt = '' ) {
-		global $current_site;
-
 		if ( false === $alt )
 			$safe_alt = '';
 		else
@@ -1422,6 +1420,17 @@ class Avatars {
 			$size = '96';
 		}
 		$size = $this->size_map( $size );
+
+		$avatar_url = $this->get_blog_avatar_url( $id, $size, $default );
+
+		$class = apply_filters( 'avatars_img_class', "avatar avatar-" . $size );
+		$avatar = "<img alt='{$safe_alt}' src='{$avatar_url}' class='{$class}' height='{$size}' width='{$size}' />";
+
+		return $avatar;
+	}
+
+	function get_blog_avatar_url( $id, $size = 96, $default = '' ) {
+		global $current_site;
 
 		$_default = $default;
 
@@ -1448,7 +1457,7 @@ class Avatars {
 			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=mm&s=' . $size;
 		else {
 			$admin_email = get_bloginfo( 'admin_email' );
-			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, true );			
+			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, true );
 		}
 
 		if ( !empty($id) ) {
@@ -1472,17 +1481,22 @@ class Avatars {
 					}
 				}
 				if ( isset( $_GET['page'] ) && 'blog-avatar' == $_GET['page']  || isset( $_GET['page'] ) && $_GET['page'] == 'edit-blog-avatar' )
-					$path = add_query_arg( 'rand', md5(time()), $path );	
+					$path = add_query_arg( 'rand', md5(time()), $path );
 
 			} else {
 				$path = $default;
 			}
-			$avatar = "<img alt='{$safe_alt}' src='{$path}' class='avatar avatar-{$size}' height='{$size}' width='{$size}' />";
-		} else {
-			$avatar = "<img alt='{$safe_alt}' src='{$default}' class='avatar avatar-{$size} avatar-default' height='{$size}' width='{$size}' />";
-		}
 
-		return $avatar;
+			return $path;
+
+		} else {
+			add_filter( 'avatars_img_class', 'add_default_img_class' );
+			return $default;
+		}
+	}
+
+	function add_default_img_class( $class ) {
+		return $class . ' avatar-default';
 	}
 
 	/**
