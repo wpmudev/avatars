@@ -4,8 +4,10 @@
  * WidgetAvatar Class
  */
 class WA_Widget_Avatars extends WP_Widget {
+
+
 	function WA_Widget_Avatars() {
-		parent::WP_Widget( false, __( 'Avatars Widget', 'avatars' ) );
+		parent::__construct( false, __( 'Avatars Widget', 'avatars' ) );
 	}
 
 	function widget( $args, $instance ) {

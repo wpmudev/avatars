@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-Version: 4.1.1
+Version: 4.1.2
 Network: true
 Text Domain: avatars
 WDP ID: 10
