@@ -5,6 +5,11 @@ Change Log:
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 
+4.1.4 - 2016/05/05
+----------------------------------------------------------------------
+Fix: Javascript error on signup page when New Blog Templates was activated
+Fix: Deprecated widget notice
+
 4.1.3 - 2016/01/04
 ----------------------------------------------------------------------
 - Fixed: Avatar uploader in signup page was not working with Membership 2

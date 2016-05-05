@@ -27,4 +27,6 @@ function avatars_membership2_enqueue_scripts( $enqueue, $pagenow ) {
 		}
 	}
 
+	return $enqueue;
+
 }
