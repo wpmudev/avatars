@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-Version: 4.1.4
+Version: 4.1.5
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -67,7 +67,7 @@ class Avatars {
 	/**
 	 * Current version of the plugin
 	 **/
-	var $current_version = '4.1.4';
+	var $current_version = '4.1.5';
 
 	private $avatars_dir;
 	public $user_avatar_dir;
@@ -252,10 +252,8 @@ class Avatars {
 
 			require_once( AVATARS_PLUGIN_DIR . 'front/widget.php' );
 
-			if ( ! is_admin() ) {
-				require_once( AVATARS_PLUGIN_DIR . 'front/avatar-signup.php' );
-				new Avatars_Signup();	
-			}			
+			require_once( AVATARS_PLUGIN_DIR . 'front/avatar-signup.php' );
+			new Avatars_Signup();
 
 			// add local avatar to the defaults list
 			add_filter( 'avatar_defaults', array( &$this, 'defaults' ) );

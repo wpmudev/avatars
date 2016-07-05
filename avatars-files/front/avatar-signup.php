@@ -61,7 +61,7 @@ class Avatars_Signup {
 						}
 
 					?>
-					<input type="hidden" id="user-avatar-filename" name="user-avatar-file" value="<?php echo $user_avatar; ?>">
+					<input type="hidden" class="user-avatar-filename" id="user-avatar-filename" name="user-avatar-file" value="<?php echo $user_avatar; ?>">
 					<button id="user-avatar-field" style="display:none"><?php _e( 'Choose a file', 'avatars' ); ?></button>
 					<input type="file" name="user_avatar" id="user-avatar">
 				</div>
@@ -86,7 +86,7 @@ class Avatars_Signup {
 						}
 						else {
 							$('#user-avatar-container img').attr('src', decodeURIComponent( response ) );
-					    	$('#user-avatar-filename').val(response);
+					    	$('.user-avatar-filename').val(response);
 						}
 					  },
 					  onCancel: function() {
@@ -112,7 +112,7 @@ class Avatars_Signup {
 	public function registration_render_signup_site_extra_fields() {
 		$user_avatar = ! empty( $_REQUEST['user-avatar-file'] ) ? $_REQUEST['user-avatar-file'] : '';
 		?>
-			<input type="hidden" id="user-avatar-filename" name="user-avatar-file" value="<?php echo $user_avatar; ?>">
+			<input type="hidden" id="user-avatar-filename" class="user-avatar-filename" name="user-avatar-file" value="<?php echo $user_avatar; ?>">
 		<?php
 	}
 
