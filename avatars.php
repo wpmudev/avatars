@@ -768,7 +768,8 @@ class Avatars {
 						$this->upload_image( $_FILES['avatar_file'], $avatar_path, $image_path, $blog_id, 'blog' );
 
 						if ( function_exists( 'moderation_image_insert' ) ) {
-							moderation_image_insert('avatar', $blog_id, $user_ID, $avatar_path . 'blog-' . $blog_id . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $blog_id . '-128.png');
+							$protocol = is_ssl() ? 'https://' : 'http://';
+							moderation_image_insert('avatar', $blog_id, $user_ID, $avatar_path . 'blog-' . $blog_id . '-128.png', $protocol . $current_site->domain . $current_site->path . 'avatar/blog-' . $blog_id . '-128.png');
 						}
 
 						wp_redirect( admin_url( 'options-general.php?page=blog-avatar&updated=true' ) );
@@ -783,9 +784,9 @@ class Avatars {
 					$tmp_file = $avatar_path . $filename;
 
 					$this->crop_image( 'blog', $blog_id, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
-
+					$protocol = is_ssl() ? 'https://' : 'http://';
 					if ( function_exists( 'moderation_image_insert' ) ) {
-						moderation_image_insert('avatar', $blog_id, $user_ID, $avatar_path . 'blog-' . $blog_id . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/blog-' . $blog_id . '-128.png');
+						moderation_image_insert('avatar', $blog_id, $user_ID, $avatar_path . 'blog-' . $blog_id . '-128.png', $protocol . $current_site->domain . $current_site->path . 'avatar/blog-' . $blog_id . '-128.png');
 					}
 
 					wp_redirect( admin_url( 'options-general.php?page=blog-avatar&updated=true' ) );
@@ -841,7 +842,8 @@ class Avatars {
 						$this->upload_image( $_FILES['avatar_file'], $avatar_path, $image_path, $user_ID, 'user' );
 
 						if ( function_exists( 'moderation_image_insert' ) && 'user-avatar' == $plugin_page ) {
-							moderation_image_insert('avatar', get_current_blog_id(), $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
+							$protocol = is_ssl() ? 'https://' : 'http://';
+							moderation_image_insert('avatar', get_current_blog_id(), $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', $protocol . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
 						}
 
 						if ( 'user-avatar' == $plugin_page ) {
@@ -871,7 +873,8 @@ class Avatars {
 					$this->crop_image( 'user', $user_ID, $tmp_file, (int)$_POST['x1'], (int)$_POST['y1'], (int)$_POST['width'], (int)$_POST['height'], $avatar_path );
 					
 					if ( function_exists( 'moderation_image_insert' ) && 'user-avatar' == $plugin_page ) {
-						moderation_image_insert( 'avatar', get_current_blog_id(), $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', 'http://' . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
+						$protocol = is_ssl() ? 'https://' : 'http://';
+						moderation_image_insert( 'avatar', get_current_blog_id(), $user_ID, $avatar_path . 'user-' . $user_ID . '-128.png', $protocol . $current_site->domain . $current_site->path . 'avatar/user-' . $user_ID . '-128.png');
 					}		
 					
 					if ( 'user-avatar' == $plugin_page ) {
@@ -1442,17 +1445,17 @@ class Avatars {
 		if ( $default == 'local_default' )
 			$default = $this->local_default_avatar_url . $size . '.png';
 		else if ( $default == 'gravatar_default' )
-			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&s=' . $size;
+			$default = 'https://www.gravatar.com/avatar/' . md5($id) . '?r=G&s=' . $size;
 		elseif( 'blank' == $default )
 			$default = includes_url( 'images/blank.gif' );
 		else if ( $default == 'identicon' )
-			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=identicon&s=' . $size;
+			$default = 'https://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=identicon&s=' . $size;
 		else if ( $default == 'wavatar' )
-			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=wavatar&s=' . $size;
+			$default = 'https://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=wavatar&s=' . $size;
 		else if ( $default == 'monsterid' )
-			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=monsterid&s=' . $size;
+			$default = 'https://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=monsterid&s=' . $size;
 		else if ( $default == 'mystery' )
-			$default = 'http://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=mm&s=' . $size;
+			$default = 'https://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=mm&s=' . $size;
 		else {
 			$admin_email = get_bloginfo( 'admin_email' );
 			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, true );
@@ -1534,5 +1537,6 @@ class Avatars {
 	}
 
 }
+
 global $ms_avatar;
 $ms_avatar = new Avatars();
