@@ -5,7 +5,7 @@ Plugin URI: http://premium.wpmudev.org/project/avatars
 Description: Allows users to upload 'user avatars' and 'blog avatars' which then can appear in comments and blog / user listings around the site
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-Version: 4.1.5
+Version: 4.1.6
 Network: true
 Text Domain: avatars
 WDP ID: 10
@@ -67,7 +67,7 @@ class Avatars {
 	/**
 	 * Current version of the plugin
 	 **/
-	var $current_version = '4.1.5';
+	var $current_version = '4.1.6';
 
 	private $avatars_dir;
 	public $user_avatar_dir;
@@ -1272,7 +1272,7 @@ class Avatars {
 	/**
 	 * Return user avatar.
 	 **/
-	function get_avatar( $id_or_email, $size = '96', $default = '', $alt = false, $return_path = false ) {
+	function get_avatar( $id_or_email, $size = '96', $default = '', $alt = false, $args = false ) {
 		global $current_site, $current_screen;
 
 		if ( ! get_option('show_avatars') )
@@ -1333,22 +1333,27 @@ class Avatars {
 				$host = 'http://0.gravatar.com';
 		}
 
-		if( 'local_default' == $default )
-			$default = $this->local_default_avatar_url . $size . '.png';
-		elseif( 'mystery' == $default )
-			$default = "$host/avatar/ad516503a11cd5ca435acc9bb6523536?s={$size}"; // ad516503a11cd5ca435acc9bb6523536 == md5('unknown@gravatar.com')
-		elseif( 'blank' == $default )
-			$default = includes_url( 'images/blank.gif' );
-		elseif( ! empty( $email ) && 'gravatar_default' == $default )
-			$default = '';
-		elseif( 'gravatar_default' == $default )
-			$default = "$host/avatar/s={$size}";
-		elseif( empty( $email ) )
-			$default = "$host/avatar/?d=$default&amp;s={$size}";
-		elseif( strpos( $default, 'http://' ) === 0 )
-			$default = add_query_arg( 's', $size, $default );
+		$force_default = isset( $args['force_default'] ) && $args['force_default'];
 
-		if ( !empty($email) ) {
+		if ( 'local_default' == $default ) {
+			$default = $this->local_default_avatar_url . $size . '.png';
+		} elseif ( 'mystery' == $default ) {
+			$default = "$host/avatar/ad516503a11cd5ca435acc9bb6523536?s={$size}";
+		} // ad516503a11cd5ca435acc9bb6523536 == md5('unknown@gravatar.com')
+		elseif ( 'blank' == $default ) {
+			$default = includes_url( 'images/blank.gif' );
+		} elseif ( ! $force_default && ! empty( $email ) && 'gravatar_default' == $default ) {
+			$default = '';
+		} elseif ( 'gravatar_default' == $default ) {
+			$default = "$host/avatar/s={$size}";
+		} elseif ( empty( $email ) || $force_default ) {
+			$default = "$host/avatar/?d=$default&amp;s={$size}";
+		} elseif ( strpos( $default, 'http://' ) === 0 ) {
+			$default = add_query_arg( 's', $size, $default );
+		}
+
+
+		if ( !empty($email) && ! $force_default ) {
 			if ( $avatar_user_id = $this->email_exists( $email ) ) { // email exists locally - check if file exists
 				$file = $this->user_avatar_dir . Avatars::encode_avatar_folder( $avatar_user_id ) . '/user-' . $avatar_user_id . '-' . $size . '.png';
 
@@ -1395,13 +1400,13 @@ class Avatars {
 
 			$avatar = "<img alt='{$safe_alt}' src='{$out}' class='avatar avatar-{$size} photo' height='{$size}' width='{$size}' />";
 
-			if ( $return_path )
+			if ( isset( $args['return_path'] ) && $args['return_path'] )
 				return $out;
 
 		} else {
 			$avatar = "<img alt='{$safe_alt}' src='{$default}' class='avatar avatar-{$size} photo avatar-default' height='{$size}' width='{$size}' />";
 
-			if ( $return_path )
+			if ( isset( $args['return_path'] ) && $args['return_path'] )
 				return $default;
 		}
 
@@ -1458,7 +1463,7 @@ class Avatars {
 			$default = 'https://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=mm&s=' . $size;
 		else {
 			$admin_email = get_bloginfo( 'admin_email' );
-			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, true );
+			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, array( 'return_path' => true ) );
 		}
 
 		if ( !empty($id) ) {
