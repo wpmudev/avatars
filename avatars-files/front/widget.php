@@ -6,7 +6,7 @@
 class WA_Widget_Avatars extends WP_Widget {
 
 
-	function WA_Widget_Avatars() {
+	function __construct() {
 		parent::__construct( false, __( 'Avatars Widget', 'avatars' ) );
 	}
 

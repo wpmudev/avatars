@@ -193,7 +193,7 @@ class Avatars {
 
 				// temporarily stores existing filesystem object
 				if( isset( $wp_filesystem ) )
-					$orig_filesystem = clone( $wp_filesystem );
+					$orig_filesystem = clone $wp_filesystem;
 
 				$wp_filesystem = new WP_Filesystem_Direct( false );
 
@@ -229,7 +229,7 @@ class Avatars {
 
 				// restore original filesystem object
 				if( isset( $orig_filesystem ) )
-					$wp_filesystem = clone( $orig_filesystem );
+					$wp_filesystem = clone $orig_filesystem;
 
 				echo "<div class='error'><p>$message</p></div>";
 			}
