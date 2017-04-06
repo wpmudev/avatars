@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the Avatars For Multisite package.
 msgid ""
 msgstr ""
-"Project-Id-Version: Avatars For Multisite 4.1.6\n"
+"Project-Id-Version: Avatars For Multisite 4.1.7\n"
 "Report-Msgid-Bugs-To: https://wpmudev.org\n"
-"POT-Creation-Date: 2017-04-06 16:05:19+00:00\n"
+"POT-Creation-Date: 2017-04-06 16:08:51+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
