@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Avatars For Multisite 4.1.6\n"
 "Report-Msgid-Bugs-To: https://wpmudev.org\n"
-"POT-Creation-Date: 2017-04-06 16:02:11+00:00\n"
+"POT-Creation-Date: 2017-04-06 16:04:02+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -13,114 +13,103 @@ msgstr ""
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
 "X-Generator: grunt-wp-i18n 0.5.4\n"
 
-#: avatars-files/avatar.php:11 build/avatars/avatars-files/avatar.php:11
+#: avatars-files/avatar.php:11
 msgid "Invalid Request"
 msgstr ""
 
-#: avatars-files/avatar.php:16 build/avatars/avatars-files/avatar.php:16
+#: avatars-files/avatar.php:16
 msgid "404 &#8212; Invalid Avatar Type."
 msgstr ""
 
-#: avatars-files/avatar.php:19 build/avatars/avatars-files/avatar.php:19
+#: avatars-files/avatar.php:19
 msgid "404 &#8212; Invalid Avatar Size."
 msgstr ""
 
 #: avatars-files/front/avatar-signup.php:41
-#: build/avatars/avatars-files/front/avatar-signup.php:41
 msgid "The select file type is invalid. File must be gif, png, jpg or jpeg."
 msgstr ""
 
 #: avatars-files/front/avatar-signup.php:53 avatars.php:430 avatars.php:432
 #: avatars.php:441 avatars.php:1095
-#: build/avatars/avatars-files/front/avatar-signup.php:53
-#: build/avatars/avatars.php:430 build/avatars/avatars.php:432
-#: build/avatars/avatars.php:441 build/avatars/avatars.php:1095
 msgid "Your Avatar"
 msgstr ""
 
 #: avatars-files/front/avatar-signup.php:65
-#: build/avatars/avatars-files/front/avatar-signup.php:65
 msgid "Choose a file"
 msgstr ""
 
 #: avatars-files/front/avatar-signup.php:85
-#: build/avatars/avatars-files/front/avatar-signup.php:85
 msgid "There was an error uploading the file. Please try with another image"
 msgstr ""
 
 #: avatars-files/front/widget.php:10
-#: build/avatars/avatars-files/front/widget.php:10
 msgid "Avatars Widget"
 msgstr ""
 
 #: avatars-files/front/widget.php:52
-#: build/avatars/avatars-files/front/widget.php:52
 msgid "Title:"
 msgstr ""
 
 #: avatars-files/front/widget.php:54
-#: build/avatars/avatars-files/front/widget.php:54
 msgid "Avatar size:"
 msgstr ""
 
-#: avatars.php:37 build/avatars/avatars.php:37
+#: avatars.php:37
 msgid "The avatars plugin is only compatible with WordPress Multisite."
 msgstr ""
 
-#: avatars.php:180 build/avatars/avatars.php:180
+#: avatars.php:180
 msgid ""
 "BuddyPress has it's own avatar system. The Avatars plugin functions have "
 "been deactivated. Please remove the files."
 msgstr ""
 
-#: avatars.php:211 build/avatars/avatars.php:211
+#: avatars.php:211
 msgid "The Avatars plugin now store files in %s. Your old folder has been moved."
 msgstr ""
 
-#: avatars.php:213 build/avatars/avatars.php:213
+#: avatars.php:213
 msgid ""
 "The Avatars plugin now store files in %s. Your old folder has been copied. "
 "Please verify that everything is working fine and delete the old folder "
 "manually."
 msgstr ""
 
-#: avatars.php:217 build/avatars/avatars.php:217
+#: avatars.php:217
 msgid ""
 "The Avatars plugin now store files in %s. Please make sure that directory "
 "is writable by the server."
 msgstr ""
 
-#: avatars.php:223 build/avatars/avatars.php:223
+#: avatars.php:223
 msgid ""
 "The Avatars plugin now store files in %s. Please make sure its parent "
 "directory is writable by the server."
 msgstr ""
 
-#: avatars.php:239 build/avatars/avatars.php:239
+#: avatars.php:239
 msgid ""
 "The Avatars plugin was unable to create directory %s. Is its parent "
 "directory writable by the server?"
 msgstr ""
 
-#: avatars.php:374 build/avatars/avatars.php:374
+#: avatars.php:374
 msgid "Local (Avatars plugin)"
 msgstr ""
 
-#: avatars.php:427 avatars.php:984 build/avatars/avatars.php:427
-#: build/avatars/avatars.php:984
+#: avatars.php:427 avatars.php:984
 msgid "Site Avatar"
 msgstr ""
 
-#: avatars.php:436 avatars.php:448 build/avatars/avatars.php:436
-#: build/avatars/avatars.php:448
+#: avatars.php:436 avatars.php:448
 msgid "Edit User Avatar"
 msgstr ""
 
-#: avatars.php:492 build/avatars/avatars.php:492
+#: avatars.php:492
 msgid "Avatar Settings"
 msgstr ""
 
-#: avatars.php:497 build/avatars/avatars.php:497
+#: avatars.php:497
 msgid ""
 "This is your \"user\" avatar. It will appear whenever you leave comments, "
 "post in the forums and when your popular posts are displayed around the "
@@ -128,219 +117,95 @@ msgid ""
 msgstr ""
 
 #: avatars.php:502 avatars.php:504 avatars.php:506
-#: build/avatars/avatars.php:502 build/avatars/avatars.php:504
-#: build/avatars/avatars.php:506
 msgid "Change Avatar"
 msgstr ""
 
-#: avatars.php:647 build/avatars/avatars.php:647
+#: avatars.php:647
 msgid "Image could not be processed. Please go back and try again."
 msgstr ""
 
-#: avatars.php:647 build/avatars/avatars.php:647
+#: avatars.php:647
 msgid "Image Processing Error"
 msgstr ""
 
 #: avatars.php:673 avatars.php:708 avatars.php:936 avatars.php:1040
-#: avatars.php:1164 build/avatars/avatars.php:673 build/avatars/avatars.php:708
-#: build/avatars/avatars.php:936 build/avatars/avatars.php:1040
-#: build/avatars/avatars.php:1164
+#: avatars.php:1164
 msgid "There was an error uploading the file, please try again."
 msgstr ""
 
 #: avatars.php:760 avatars.php:921 avatars.php:1149
-#: build/avatars/avatars.php:760 build/avatars/avatars.php:921
-#: build/avatars/avatars.php:1149
 msgid "The uploaded file is not a valid image. Please try again."
 msgstr ""
 
-#: avatars.php:823 avatars.php:829 build/avatars/avatars.php:823
-#: build/avatars/avatars.php:829
+#: avatars.php:823 avatars.php:829
 msgid "Avatar reset."
 msgstr ""
 
-#: avatars.php:853 avatars.php:884 build/avatars/avatars.php:853
-#: build/avatars/avatars.php:884
+#: avatars.php:853 avatars.php:884
 msgid "Avatar updated"
 msgstr ""
 
-#: avatars.php:860 avatars.php:891 build/avatars/avatars.php:860
-#: build/avatars/avatars.php:891
+#: avatars.php:860 avatars.php:891
 msgid "Avatar updated."
 msgstr ""
 
-#: avatars.php:909 build/avatars/avatars.php:909
+#: avatars.php:909
 msgid "Nice Try..."
 msgstr ""
 
 #: avatars.php:960 avatars.php:977 avatars.php:1066 avatars.php:1087
-#: avatars.php:1189 avatars.php:1206 build/avatars/avatars.php:960
-#: build/avatars/avatars.php:977 build/avatars/avatars.php:1066
-#: build/avatars/avatars.php:1087 build/avatars/avatars.php:1189
-#: build/avatars/avatars.php:1206
+#: avatars.php:1189 avatars.php:1206
 msgid "Crop Image"
 msgstr ""
 
 #: avatars.php:963 avatars.php:1073 avatars.php:1192
-#: build/avatars/avatars.php:963 build/avatars/avatars.php:1073
-#: build/avatars/avatars.php:1192
 msgid "Choose the part of the image you want to use as the avatar."
 msgstr ""
 
-#: avatars.php:986 build/avatars/avatars.php:986
+#: avatars.php:986
 msgid ""
 "This is your \"site\" avatar. It will appear whenever your blog is listed "
 "(for example, on the front page of the site)."
 msgstr ""
 
 #: avatars.php:989 avatars.php:1106 avatars.php:1218
-#: build/avatars/avatars.php:989 build/avatars/avatars.php:1106
-#: build/avatars/avatars.php:1218
 msgid "Upload New Avatar"
 msgstr ""
 
-#: avatars.php:994 build/avatars/avatars.php:994
+#: avatars.php:994
 msgid "Allowed Formats: jpeg, gif, and png"
 msgstr ""
 
-#: avatars.php:995 avatars.php:1112 build/avatars/avatars.php:995
-#: build/avatars/avatars.php:1112
+#: avatars.php:995 avatars.php:1112
 msgid ""
 "If you are experiencing problems cropping your image please use the "
 "alternative upload method (\"Alternative Upload\" button)."
 msgstr ""
 
 #: avatars.php:997 avatars.php:1114 avatars.php:1226
-#: build/avatars/avatars.php:997 build/avatars/avatars.php:1114
-#: build/avatars/avatars.php:1226
 msgid "Upload"
 msgstr ""
 
 #: avatars.php:998 avatars.php:1115 avatars.php:1227
-#: build/avatars/avatars.php:998 build/avatars/avatars.php:1115
-#: build/avatars/avatars.php:1227
 msgid "Alternative Upload"
 msgstr ""
 
 #: avatars.php:999 avatars.php:1116 avatars.php:1228
-#: build/avatars/avatars.php:999 build/avatars/avatars.php:1116
-#: build/avatars/avatars.php:1228
 msgid "Reset"
 msgstr ""
 
-#: avatars.php:1111 avatars.php:1223 build/avatars/avatars.php:1111
-#: build/avatars/avatars.php:1223
+#: avatars.php:1111 avatars.php:1223
 msgid "Allowed Formats:jpeg, gif, and png"
 msgstr ""
 
-#: avatars.php:1215 build/avatars/avatars.php:1215
+#: avatars.php:1215
 msgid "User Avatar"
 msgstr ""
 
-#: avatars.php:1224 build/avatars/avatars.php:1224
+#: avatars.php:1224
 msgid ""
 "If you are experiencing problems cropping the image please use the "
 "alternative upload method (\"Alternative Upload\" button)."
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:223
-msgid "install"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:230
-msgid ""
-"Important updates are available for <strong>%s</strong>. Install the free "
-"WPMU DEV Dashboard plugin now for updates and support!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:232
-msgid ""
-"<strong>%s</strong> is almost ready - install the free WPMU DEV Dashboard "
-"plugin for updates and support!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:236
-msgid ""
-"Important updates are available for your WPMU DEV plugins/themes. Install "
-"the free WPMU DEV Dashboard plugin now for updates and support!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:238
-msgid ""
-"Almost ready - install the free WPMU DEV Dashboard plugin for updates and "
-"support!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:244
-msgid "Install Plugin"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:247
-#: build/avatars/externals/wpmudev-dash-notification.php:288
-msgid "Saving..."
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:248
-#: build/avatars/externals/wpmudev-dash-notification.php:289
-msgid "Dismiss"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:264
-msgid "activate"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:271
-msgid ""
-"Important updates are available for <strong>%s</strong>. Activate the WPMU "
-"DEV Dashboard to update now!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:273
-msgid "Just one more step to enable updates and support for <strong>%s</strong>!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:277
-msgid ""
-"Important updates are available for your WPMU DEV plugins/themes. Activate "
-"the WPMU DEV Dashboard to update now!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:279
-msgid ""
-"Just one more step - activate the WPMU DEV Dashboard plugin and you're all "
-"done!"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:285
-msgid "Activate WPMU DEV Dashboard"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:952
-msgid "We did not find any data for this plugin or theme..."
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:1131
-msgid "%s changelog"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:1161
-msgid "Current"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:1167
-msgid "New"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:1184
-msgid "Version %s"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:1202
-msgid "Show all changes"
-msgstr ""
-
-#: build/avatars/externals/wpmudev-dash-notification.php:1203
-msgid "Hide details"
 msgstr ""
 
 #. Plugin Name of the plugin/theme

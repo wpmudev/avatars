@@ -30,7 +30,8 @@ module.exports = function(grunt) {
                     '!node_modules/**', // Exclude node_modules/
                     '!tests/**', // Exclude tests/
                     '!admin/assets/shared-ui/**', // Exclude WPMU DEV Shared UI
-                    '!external/**'
+                    '!externals/**',
+                    '!build/**'
                 ],
                 expand: true
             }
