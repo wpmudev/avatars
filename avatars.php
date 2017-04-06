@@ -489,7 +489,7 @@ class Avatars {
 	function to_profile( $profileuser ) {
 		global $submenu_file;
 	?>
-		<h3><?php _e('Avatar Settings', 'avatar');?></h3>
+		<h3><?php _e('Avatar Settings', 'avatars');?></h3>
 		<table class="form-table">
 			<tbody>
 				<tr>
