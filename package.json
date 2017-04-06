@@ -1,6 +1,6 @@
 {
   "name": "avatars",
-  "version": "4.1.6",
+  "version": "4.1.7",
   "main": "avatars.php",
   "projectEditUrl": "https://premium.wpmudev.org/wp-admin/edit.php?post_type=project&page=projects-manage&manage_files=10",
   "description": "",
