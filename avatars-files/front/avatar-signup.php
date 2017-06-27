@@ -23,7 +23,8 @@ class Avatars_Signup {
         add_action( 'wpmu_activate_user', array( &$this, 'save_user_avatar' ), 10, 3 );
         add_action( 'wpmu_activate_blog', array( &$this, '_save_user_avatar' ), 10, 5 );
 
-
+		// Membership 2
+		add_action( 'ms_model_member_create_new_user', array( $this, 'avatars_membership2_update_user_avatar' ) );
 	}
 
 	
@@ -207,5 +208,28 @@ class Avatars_Signup {
 		$this->ms_avatars->delete_temp( $image_path );
 
     }
+
+	function avatars_membership2_update_user_avatar( $model ) {
+		/** @var MS_Model_Member $vars */
+		if ( method_exists( $model, 'get_object_vars' ) ) {
+			$vars = $model->get_object_vars();
+			$user = get_user_by( 'id', $vars['id'] );
+			if ( ! $user ) {
+				return;
+			}
+
+			if ( ! isset( $_REQUEST['user-avatar-file'] ) ) {
+				return;
+			}
+
+			$user_avatar = sanitize_text_field( basename( $_REQUEST['user-avatar-file'] ) );
+
+			$source_dir = $this->ms_avatars->get_avatar_dir();
+			$image_dir = $source_dir . '/user/' . Avatars::encode_avatar_folder( $vars['id'] );
+
+			$this->upload_image( $source_dir, $image_dir, $user_avatar, 'user', $vars['id'] );
+		}
+	}
+
 
 }
