@@ -1466,6 +1466,8 @@ class Avatars {
 			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, array( 'return_path' => true ) );
 		}
 
+		$default = apply_filters( 'get_blog_default_avatar', $default, $id, $size );
+		
 		if ( !empty($id) ) {
 			//user exists locally - check if avatar exists
 
