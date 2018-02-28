@@ -1463,7 +1463,7 @@ class Avatars {
 			$default = 'https://www.gravatar.com/avatar/' . md5($id) . '?r=G&d=mm&s=' . $size;
 		else {
 			$admin_email = get_bloginfo( 'admin_email' );
-			$default = $this->get_avatar( $admin_email, $size, $_default, $alt, array( 'return_path' => true ) );
+			$default = $this->get_avatar( $admin_email, $size, $_default, false, array( 'return_path' => true ) );
 		}
 
 		$default = apply_filters( 'get_blog_default_avatar', $default, $id, $size );
