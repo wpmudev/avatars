@@ -34,7 +34,7 @@ You want users to have great avatars for commenting and to go in their author pr
 
 ## Usage
 
-For help with installing plugins please refer to our [Plugin installation guide](https://premium.wpmudev.org/wpmu-manual/installing-regular-plugins-on-wpmu/). Once installed navigate to **Plugins** in the network admin dashboard and network activate the plugin. _Please note: This plugin isn't designed to be used with BuddyPress since it has its own inbuilt avatar system._
+For help with installing plugins please refer to our [Plugin installation guide](https://wpmudev.com/docs/using-wordpress/installing-wordpress-plugins/). Once installed navigate to **Plugins** in the network admin dashboard and network activate the plugin. _Please note: This plugin isn't designed to be used with BuddyPress since it has its own inbuilt avatar system._
 
 ### Using with bbPress
 
